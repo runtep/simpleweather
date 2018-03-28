@@ -1,0 +1,14 @@
+/local.properties
+
+.idea/
+.gradle/
+build/
+captures/
+
+.DS_Store
+
+*.iml
+*.ipr
+*.iws
+
+*.apk
