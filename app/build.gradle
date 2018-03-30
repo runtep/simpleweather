@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    defaultConfig {
+        // Stops the Gradle plugin’s automatic rasterization of vectors
+        generatedDensities = []
+    }
+    // Flag to tell aapt to keep the attribute ids around
+    aaptOptions {
+        additionalParameters "--no-version-vectors"
+    }
     compileSdkVersion 23
     buildToolsVersion "27.0.3"
     defaultConfig {
