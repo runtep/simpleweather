@@ -1,11 +1,19 @@
 package org.roko.smplweather.model;
 
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
+
 import java.util.List;
 
+@Root(name = "channel", strict = false)
 public class RssChannel {
-    String ttl;
-    String link;
-    List<RssItem> items;
+    @Element(name = "ttl", required = false)
+    private String ttl;
+    @Element(name = "link", required = false)
+    private String link;
+    @ElementList(inline = true, name = "items", required = false)
+    private List<RssItem> items;
 
     public String getTtl() {
         return ttl;

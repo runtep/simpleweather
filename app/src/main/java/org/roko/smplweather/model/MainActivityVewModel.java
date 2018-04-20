@@ -1,11 +1,12 @@
 package org.roko.smplweather.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class MainActivityVewModel {
-    String actionBarTitle;
-    List<ListItemViewModel> items;
-    String footer;
+public class MainActivityVewModel implements Serializable {
+    private String actionBarTitle;
+    private List<ListItemViewModel> items;
+    private String footer;
 
     public String getActionBarTitle() {
         return actionBarTitle;

@@ -2,9 +2,7 @@ package org.roko.smplweather;
 
 import android.support.annotation.NonNull;
 
-import org.roko.smplweather.model.RssChannel;
-
-public class RssReadResult {
+public class TaskResult {
     public interface Code {
         int NULL_CONTENT = -3;
         int NETWORK_ISSUE = -2;
@@ -13,18 +11,18 @@ public class RssReadResult {
     }
     private final int code;
     private String details;
-    private RssChannel content;
+    private Object content;
 
-    public RssReadResult(int code) {
+    public TaskResult(int code) {
         this.code = code;
     }
 
-    public RssReadResult(int code, String message) {
+    public TaskResult(int code, String message) {
         this.code = code;
         this.details = message;
     }
 
-    public RssReadResult(int code, @NonNull RssChannel content) {
+    public TaskResult(int code, @NonNull Object content) {
         this.code = code;
         this.content = content;
     }
@@ -37,7 +35,7 @@ public class RssReadResult {
         return details;
     }
 
-    public RssChannel getContent() {
+    public Object getContent() {
         return content;
     }
 }

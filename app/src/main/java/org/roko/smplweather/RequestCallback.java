@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 
 public interface RequestCallback<T> {
 
-    void handleResult(@NonNull T result);
+    void handleResult(String taskAction, @NonNull T result);
 
     NetworkInfo getActiveNetworkInfo();
 }

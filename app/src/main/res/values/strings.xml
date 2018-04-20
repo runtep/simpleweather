@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Simple Weather</string>
     <string name="dots_menu_btn_refresh">Refresh</string>
+    <string name="search_title">Search city</string>
+    <string name="search_hint">City name</string>
 
     <string name="toast_update_completed">Update completed</string>
     <string name="toast_no_content">No content found</string>
@@ -10,7 +12,7 @@
     <string name="no_data">No data</string>
     <string name="footer_actuality">Forecast actual on</string>
 
-    <string name="main_url" translatable="false">https://meteoinfo.ru/rss/forecasts/index.php?s=28900</string>
-
+    <string name="url_main" translatable="false">https://meteoinfo.ru/</string>
+    <string name="default_city_id" translatable="false">28900</string>
     <string name="const_hg_cl" translatable="false">рт.ст.</string>
 </resources>

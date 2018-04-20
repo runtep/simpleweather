@@ -31,7 +31,10 @@ public class MyAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return position;
+        if (items.size() <= position) {
+            throw new IllegalArgumentException("Index \"" + position + "\" is out of range");
+        }
+        return items.get(position);
     }
 
     @Override

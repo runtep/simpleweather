@@ -1,6 +1,8 @@
 package org.roko.smplweather.activity;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
@@ -13,15 +15,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.roko.smplweather.Constants;
 import org.roko.smplweather.MyAdapter;
 import org.roko.smplweather.R;
 import org.roko.smplweather.RequestCallback;
-import org.roko.smplweather.RssReadResult;
+import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
 import org.roko.smplweather.model.ListItemViewModel;
 import org.roko.smplweather.model.MainActivityVewModel;
 import org.roko.smplweather.model.RssChannel;
 import org.roko.smplweather.model.RssItem;
+import org.roko.smplweather.tasks.TaskAction;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,7 +37,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity implements RequestCallback<RssReadResult> {
+public class MainActivity extends AppCompatActivity implements RequestCallback<TaskResult> {
 
     private static final String DATE_SOURCE_PATTERN = "dd.MM.yyyy HH:mm'('z')'";
     private static final String DATE_TARGET_PATTERN = "dd MMM HH:mm";
@@ -56,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
 
     private boolean isRequestRunning = false;
 
-    private ListView mListView;
     private MyAdapter myAdapter;
     private TextView mFooter;
 
@@ -76,32 +79,50 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
         }
 
         myAdapter = new MyAdapter(this);
-        mListView = (ListView) findViewById(R.id.listView);
+        ListView mListView = (ListView) findViewById(R.id.listView);
         mListView.setEmptyView(findViewById(R.id.emptyElement));
         mListView.setAdapter(myAdapter);
 
         mFooter = (TextView) findViewById(R.id.footer);
 
-        String urlString = getResources().getString(R.string.main_url);
+        String urlString = getString(R.string.url_main);
         mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), urlString);
 
-        MainActivityVewModel persistedModel =
-                (MainActivityVewModel) getLastCustomNonConfigurationInstance();
-        if (persistedModel != null) {
-            this.model = persistedModel;
+        if (savedInstanceState != null &&
+                savedInstanceState.containsKey(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL)) {
+            this.model = (MainActivityVewModel) savedInstanceState.getSerializable(
+                    Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL);
             updateUIFromViewModel(this.model);
         }
     }
 
     @Override
-    public Object onRetainCustomNonConfigurationInstance() {
-        return model;
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL, model);
     }
 
-    private void loadRss() {
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if (Constants.INTENT_ACTION_SELECT_CITY.equals(intent.getAction())) {
+            String storedRssId = getStoredRssId();
+            String selectedRssId = intent.getStringExtra(Constants.PARAM_KEY_RSS_ID);
+            if (!storedRssId.equals(selectedRssId)) {
+                SharedPreferences.Editor editor = getSharedPreferences().edit();
+                editor.putString(Constants.PARAM_KEY_RSS_ID, selectedRssId);
+                editor.apply();
+
+                loadRss(selectedRssId);
+            }
+        }
+    }
+
+    private void loadRss(@NonNull String rssId) {
         if (!isRequestRunning) {
             isRequestRunning = true;
-            mNetworkFragment.startTask();
+            mNetworkFragment.startTask(TaskAction.READ_RSS_BY_ID, rssId);
         }
     }
 
@@ -115,23 +136,29 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
         mFooter.setText(model.getFooter());
     }
 
+    private void goToSearch() {
+        Intent intent = new Intent(this, SearchResultsActivity.class);
+        startActivity(intent);
+    }
+
     // RequestCallback -----------------------------------------------------------------------------
 
     @Override
-    public void handleResult(@NonNull RssReadResult result) {
+    public void handleResult(String taskAction, @NonNull TaskResult result) {
         final int messageId;
         switch (result.getCode()) {
-            case RssReadResult.Code.SUCCESS: {
-                model = convertToViewModel(result.getContent());
+            case TaskResult.Code.SUCCESS: {
+                RssChannel channel = (RssChannel) result.getContent();
+                model = convertToViewModel(channel);
                 updateUIFromViewModel(model);
                 messageId = R.string.toast_update_completed;
             }
             break;
-            case RssReadResult.Code.NULL_CONTENT: {
+            case TaskResult.Code.NULL_CONTENT: {
                 messageId = R.string.toast_no_content;
             }
             break;
-            case RssReadResult.Code.NETWORK_ISSUE: {
+            case TaskResult.Code.NETWORK_ISSUE: {
                 messageId = R.string.toast_network_issue;
             }
             break;
@@ -154,16 +181,20 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
     // Panel menu initialization -------------------------------------------------------------------
 
     @Override
-    public boolean onCreatePanelMenu(int featureId, Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
-        return super.onCreatePanelMenu(featureId, menu);
+
+        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                loadRss();
+                loadRss(getStoredRssId());
+                return true;
+            case R.id.action_search:
+                goToSearch();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -171,23 +202,34 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
 
     //----------------------------------------------------------------------------------------------
 
+    private SharedPreferences getSharedPreferences() {
+        return getSharedPreferences(Constants.PRIVATE_STORAGE_NAME, Context.MODE_PRIVATE);
+    }
+
+    private String getStoredRssId() {
+        return getSharedPreferences().getString(Constants.PARAM_KEY_RSS_ID,
+                getString(R.string.default_city_id));
+    }
+
     private MainActivityVewModel convertToViewModel(RssChannel channel) {
-        String hgCol = getResources().getString(R.string.const_hg_cl);
+        String hgCol = getString(R.string.const_hg_cl);
         String city = "", lastUpdate = "";
         List<ListItemViewModel> items = new ArrayList<>(channel.getItems().size());
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
             int pos = rssTitle.lastIndexOf(',');
-            String day = "";
+            String title = "";
             if (pos != -1) {
                 if (city.isEmpty()) {
                     city = rssTitle.substring(0, pos);
                 }
-                day = rssTitle.substring(pos + 1).trim();
+                title = rssTitle.substring(pos + 1).trim();
+            } else {
+                title = rssTitle;
             }
 
             String rssDesc = rssItem.getDescription();
-            StringBuilder details = new StringBuilder(rssDesc.replaceAll("\\. +", "\\.\n"));
+            StringBuilder details = new StringBuilder(rssDesc.replaceAll("\\. +", "\n"));
 
             pos = details.lastIndexOf(hgCol);
             if (pos != -1) {
@@ -214,10 +256,13 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<R
                 }
             }
 
-            items.add(new ListItemViewModel(day, details.toString()));
+            items.add(new ListItemViewModel(title, details.toString()));
         }
 
-        String footer = getResources().getString(R.string.footer_actuality) + " " + lastUpdate;
+        String footer = "";
+        if (!lastUpdate.isEmpty()) {
+            footer = getString(R.string.footer_actuality) + " " + lastUpdate;
+        }
 
         MainActivityVewModel model = new MainActivityVewModel();
         model.setActionBarTitle(city);

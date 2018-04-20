@@ -3,12 +3,17 @@ package org.roko.smplweather.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
-import org.roko.smplweather.RssReadResult;
-import org.roko.smplweather.RssReadTask;
+import org.roko.smplweather.tasks.GenericTask;
+import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.RequestCallback;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NetworkFragment extends Fragment {
 
@@ -17,8 +22,9 @@ public class NetworkFragment extends Fragment {
     public static final String TAG = "NetworkFragment";
 
     private String urlString;
-    private RequestCallback<RssReadResult> callback;
-    private RssReadTask task;
+    private RequestCallback<TaskResult> callback;
+    private GenericTask task;
+    private Map<String, Object> sessionStorage = new HashMap<>();
 
     public static NetworkFragment getInstance(FragmentManager fragmentManager, String url) {
         NetworkFragment networkFragment = new NetworkFragment();
@@ -41,7 +47,7 @@ public class NetworkFragment extends Fragment {
     @SuppressWarnings("unchecked")
     public void onAttach(Context context) {
         super.onAttach(context);
-        callback = (RequestCallback<RssReadResult>) context;
+        callback = (RequestCallback<TaskResult>) context;
     }
 
     @Override
@@ -56,15 +62,26 @@ public class NetworkFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void startTask() {
+    public void startTask(String actionString, String queryString) {
         interruptTask();
-        task = new RssReadTask(callback);
-        task.execute(urlString);
+        task = new GenericTask(callback);
+        task.setSessionStorage(sessionStorage);
+        task.execute(urlString, actionString, queryString);
     }
 
     public void interruptTask() {
         if (task != null) {
             task.cancel(true);
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    public Serializable getSessionStorage() {
+        return new HashMap<>(sessionStorage);
+    }
+
+    public void setSessionStorage(@NonNull Map<String, Object> sessionStorage) {
+        this.sessionStorage = new HashMap<>(sessionStorage);
     }
 }
