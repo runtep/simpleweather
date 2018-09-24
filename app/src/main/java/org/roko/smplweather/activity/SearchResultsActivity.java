@@ -29,6 +29,7 @@ import org.roko.smplweather.model.SearchActivityViewModel;
 import org.roko.smplweather.tasks.TaskAction;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -151,6 +152,7 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
             switch (result.getCode()) {
                 case TaskResult.Code.NULL_CONTENT:
                     messageId = R.string.toast_no_content;
+                    resetSearchResults();
                     break;
                 case TaskResult.Code.NETWORK_ISSUE:
                     messageId = R.string.toast_network_issue;
@@ -168,6 +170,16 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
         ConnectivityManager manager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return manager.getActiveNetworkInfo();
+    }
+
+    private void resetSearchResults() {
+        TextView mTextView = (TextView) findViewById(R.id.search_results_empty);
+        mTextView.setText(R.string.no_data);
+
+        if (myAdapter.getCount() > 0) {
+            myAdapter.setItems(Collections.<ListItemViewModel>emptyList());
+            myAdapter.notifyDataSetChanged();
+        }
     }
     // ---------------------------------------------------------------------------------------------
 
