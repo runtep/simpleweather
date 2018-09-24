@@ -99,7 +99,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL, model);
+        if (this.model != null) {
+            outState.putSerializable(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL, model);
+        }
     }
 
     @Override
@@ -127,13 +129,15 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     private void updateUIFromViewModel(MainActivityVewModel model) {
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setTitle(model.getActionBarTitle());
+        if (model != null) {
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(model.getActionBarTitle());
+            }
+            myAdapter.setItems(model.getItems());
+            myAdapter.notifyDataSetChanged();
+            mFooter.setText(model.getFooter());
         }
-        myAdapter.setItems(model.getItems());
-        myAdapter.notifyDataSetChanged();
-        mFooter.setText(model.getFooter());
     }
 
     private void goToSearch() {
