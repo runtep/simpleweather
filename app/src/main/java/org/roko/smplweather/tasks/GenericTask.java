@@ -54,7 +54,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
 
     protected ResponseWrapper doInBackground(String... args) {
         ResponseWrapper res = null;
-        if (!isCancelled() && args != null && args.length > 0) {
+        if (!isCancelled() && args != null && args.length == 3) {
             String urlString = args[0];
             String actionString = args[1];
             String queryString = args[2];
