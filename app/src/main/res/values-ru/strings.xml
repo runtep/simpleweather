@@ -8,4 +8,6 @@
     <string name="toast_no_content">Ничего не найдено</string>
     <string name="toast_network_issue">Сетевое соединение недоступно</string>
     <string name="no_data">Нет данных</string>
+    <string name="search_title">Найти город</string>
+    <string name="search_hint">Введите название</string>
 </resources>
