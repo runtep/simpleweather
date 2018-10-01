@@ -22,6 +22,7 @@ import org.roko.smplweather.R;
 import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
+import org.roko.smplweather.model.ForecastListItem;
 import org.roko.smplweather.model.ListItemViewModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.RssChannel;
@@ -31,6 +32,7 @@ import org.roko.smplweather.tasks.TaskAction;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -54,6 +56,15 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         @Override
         protected SimpleDateFormat initialValue() {
             return new SimpleDateFormat(DATE_TARGET_PATTERN, Locale.getDefault());
+        }
+    };
+
+    private static ThreadLocal<SimpleDateFormat> DF_LIST_ITEM_TITLE = new ThreadLocal<SimpleDateFormat>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMMMM", new Locale("ru"));
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdf;
         }
     };
 
@@ -144,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             if (actionBar != null) {
                 actionBar.setTitle(model.getActionBarTitle());
             }
-            myAdapter.setItems(model.getItems());
+            myAdapter.setItems(convert(model.getItems()));
             myAdapter.notifyDataSetChanged();
             long lastUpdateUTC = model.getLastUpdateUTC();
             if (lastUpdateUTC != -1) {
@@ -233,19 +244,24 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     private MainActivityViewModel convertToViewModel(RssChannel channel) {
+        Calendar todayUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
+        Calendar itemDayUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
+
         String hgCol = getString(R.string.const_hg_cl);
         String city = "";
         long lastUpdateUTC = -1;
-        List<ListItemViewModel> items = new ArrayList<>(channel.getItems().size());
+        List<ForecastListItem> items = new ArrayList<>(channel.getItems().size());
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
             int pos = rssTitle.lastIndexOf(',');
             String title = "";
+            long itemDateUTC = -1;
             if (pos != -1) {
                 if (city.isEmpty()) {
                     city = rssTitle.substring(0, pos);
                 }
                 title = rssTitle.substring(pos + 1).trim();
+                itemDateUTC = toDateUTC(title, todayUTC, itemDayUTC);
             } else {
                 title = rssTitle;
             }
@@ -274,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 }
             }
 
-            items.add(new ListItemViewModel(title, details.toString()));
+            items.add(new ForecastListItem(title, details.toString(), itemDateUTC));
         }
 
         MainActivityViewModel model = new MainActivityViewModel();
@@ -283,5 +299,38 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         model.setLastUpdateUTC(lastUpdateUTC);
 
         return model;
+    }
+
+    private static long toDateUTC(String title, Calendar todayUTC, Calendar itemDayUTC) {
+        try {
+            itemDayUTC.setTime(DF_LIST_ITEM_TITLE.get().parse(title));
+            itemDayUTC.set(Calendar.YEAR, todayUTC.get(Calendar.YEAR));
+            return itemDayUTC.getTimeInMillis();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private static List<ListItemViewModel> convert(List<ForecastListItem> items) {
+        List<ListItemViewModel> res = new ArrayList<>(items.size());
+
+        Calendar calUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
+
+        for (ForecastListItem item : items) {
+            String title;
+            long itemDateUTC = item.getDateTimeUTC();
+            if (itemDateUTC != -1) {
+                calUTC.setTimeInMillis(itemDateUTC);
+                String weekdayName = calUTC.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
+                title = weekdayName + ", " + item.getTitle();
+            } else {
+                title = item.getTitle();
+            }
+            String desc = item.getDescription();
+
+            res.add(new ListItemViewModel(title, desc));
+        }
+
+        return res;
     }
 }

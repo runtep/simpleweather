@@ -5,7 +5,7 @@ import java.util.List;
 
 public class MainActivityViewModel implements Serializable {
     private String actionBarTitle;
-    private List<ListItemViewModel> items;
+    private List<ForecastListItem> items;
     private long lastUpdateUTC = -1;
 
     public String getActionBarTitle() {
@@ -16,11 +16,11 @@ public class MainActivityViewModel implements Serializable {
         this.actionBarTitle = actionBarTitle;
     }
 
-    public List<ListItemViewModel> getItems() {
+    public List<ForecastListItem> getItems() {
         return items;
     }
 
-    public void setItems(List<ListItemViewModel> items) {
+    public void setItems(List<ForecastListItem> items) {
         this.items = items;
     }
 
