@@ -22,7 +22,7 @@ final class RequestProcessor {
     private static final String STORAGE_KEY_COOKIES = "some_cookies";
     private static final String HEADER_KEY_SET_COOKIE = "Set-Cookie";
     private static final String PATTERN_EXTRACT_RSS_ID =
-            ".?<a +href=[^<]+</a>[^<]+(<a +href=.?\"[^=]+=(\\d+).?\">RSS</a>).?";
+            ".?(<a +href=[^<]+</a>[^<]+){0,1}(<a +href=.?\"[^=]+=(\\d+).?\">RSS</a>).?";
 
     public ResponseWrapper processReadRssRequest(GenericTask.ApiService service, String queryString) {
         ResponseWrapper requestResult;
@@ -112,7 +112,7 @@ final class RequestProcessor {
                     Pattern p = Pattern.compile(PATTERN_EXTRACT_RSS_ID);
                     Matcher m = p.matcher(html);
                     if (m.find()) {
-                        content = m.group(2);
+                        content = m.group(3);
                     }
                 }
             }
