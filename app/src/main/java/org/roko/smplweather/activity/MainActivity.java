@@ -23,7 +23,7 @@ import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
 import org.roko.smplweather.model.ListItemViewModel;
-import org.roko.smplweather.model.MainActivityVewModel;
+import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.RssChannel;
 import org.roko.smplweather.model.RssItem;
 import org.roko.smplweather.tasks.TaskAction;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private TextView mFooter;
 
-    private MainActivityVewModel model;
+    private MainActivityViewModel model;
 
     private Pattern patternActualDate =
             Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
         if (savedInstanceState != null &&
                 savedInstanceState.containsKey(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL)) {
-            this.model = (MainActivityVewModel) savedInstanceState.getSerializable(
+            this.model = (MainActivityViewModel) savedInstanceState.getSerializable(
                     Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL);
             updateUIFromViewModel(this.model);
         }
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private void updateUIFromViewModel(MainActivityVewModel model) {
+    private void updateUIFromViewModel(MainActivityViewModel model) {
         if (model != null) {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
@@ -146,7 +146,13 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             myAdapter.setItems(model.getItems());
             myAdapter.notifyDataSetChanged();
-            mFooter.setText(model.getFooter());
+            long lastUpdateUTC = model.getLastUpdateUTC();
+            if (lastUpdateUTC != -1) {
+                DF_TARGET.get().setTimeZone(TimeZone.getDefault()); // to user's timezone
+                String lastUpdateDateTime = DF_TARGET.get().format(new Date(lastUpdateUTC));
+                String footer = getString(R.string.footer_actuality) + " " + lastUpdateDateTime;
+                mFooter.setText(footer);
+            }
         }
     }
 
@@ -226,9 +232,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 getString(R.string.default_city_id));
     }
 
-    private MainActivityVewModel convertToViewModel(RssChannel channel) {
+    private MainActivityViewModel convertToViewModel(RssChannel channel) {
         String hgCol = getString(R.string.const_hg_cl);
-        String city = "", lastUpdate = "";
+        String city = "";
+        long lastUpdateUTC = -1;
         List<ListItemViewModel> items = new ArrayList<>(channel.getItems().size());
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
@@ -253,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
             String rssSource = rssItem.getSource();
             pos = rssSource.lastIndexOf(',');
-            if (pos != -1 && lastUpdate.isEmpty()) {
+            if (pos != -1 && lastUpdateUTC == -1) {
                 String dateInfo = rssSource.substring(pos + 1);
 
                 Matcher m = patternActualDate.matcher(dateInfo);
@@ -262,27 +269,18 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     try {
                         DF_SOURCE.get().setTimeZone(TimeZone.getTimeZone("UTC"));
                         Date d = DF_SOURCE.get().parse(dateString);
-
-                        DF_TARGET.get().setTimeZone(TimeZone.getDefault());
-                        lastUpdate = DF_TARGET.get().format(d);
-                    } catch (ParseException e) {
-                        lastUpdate = dateString;
-                    }
+                        lastUpdateUTC = d.getTime();
+                    } catch (ParseException ignored) {}
                 }
             }
 
             items.add(new ListItemViewModel(title, details.toString()));
         }
 
-        String footer = "";
-        if (!lastUpdate.isEmpty()) {
-            footer = getString(R.string.footer_actuality) + " " + lastUpdate;
-        }
-
-        MainActivityVewModel model = new MainActivityVewModel();
+        MainActivityViewModel model = new MainActivityViewModel();
         model.setActionBarTitle(city);
         model.setItems(items);
-        model.setFooter(footer);
+        model.setLastUpdateUTC(lastUpdateUTC);
 
         return model;
     }

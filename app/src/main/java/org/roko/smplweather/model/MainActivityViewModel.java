@@ -3,10 +3,10 @@ package org.roko.smplweather.model;
 import java.io.Serializable;
 import java.util.List;
 
-public class MainActivityVewModel implements Serializable {
+public class MainActivityViewModel implements Serializable {
     private String actionBarTitle;
     private List<ListItemViewModel> items;
-    private String footer;
+    private long lastUpdateUTC = -1;
 
     public String getActionBarTitle() {
         return actionBarTitle;
@@ -24,11 +24,11 @@ public class MainActivityVewModel implements Serializable {
         this.items = items;
     }
 
-    public String getFooter() {
-        return footer;
+    public long getLastUpdateUTC() {
+        return lastUpdateUTC;
     }
 
-    public void setFooter(String footer) {
-        this.footer = footer;
+    public void setLastUpdateUTC(long lastUpdateMs) {
+        this.lastUpdateUTC = lastUpdateMs;
     }
 }
