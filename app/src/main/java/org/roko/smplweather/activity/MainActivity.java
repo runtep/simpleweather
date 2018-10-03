@@ -45,11 +45,19 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private static final String DATE_SOURCE_PATTERN = "dd.MM.yyyy HH:mm'('z')'";
     private static final String DATE_TARGET_PATTERN = "dd MMM HH:mm";
+    private static final String DATE_PATTERN_ITEM_TITLE = "dd MMMMM";
+
+    private static final Locale LOCALE_RU = new Locale("ru");
+
+    private static Pattern PATTERN_FORECAST_DATE =
+            Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
 
     private static ThreadLocal<SimpleDateFormat> DF_SOURCE = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat(DATE_SOURCE_PATTERN, Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_SOURCE_PATTERN, Locale.getDefault());
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdf;
         }
     };
 
@@ -63,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private static ThreadLocal<SimpleDateFormat> DF_LIST_ITEM_TITLE = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd MMMMM", new Locale("ru"));
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_ITEM_TITLE, LOCALE_RU);
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sdf;
         }
@@ -73,14 +81,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private boolean isRequestRunning = false;
 
-    private MyAdapter myAdapter;
+    private MyAdapter<ListViewItemModel> myAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private TextView mFooter;
 
     private MainActivityViewModel model;
-
-    private Pattern patternActualDate =
-            Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             actionBar.setTitle("");
         }
 
-        myAdapter = new MyAdapter(this);
+        myAdapter = new MyAdapter<>(this);
         ListView mListView = (ListView) findViewById(R.id.listView);
         mListView.setAdapter(myAdapter);
 
@@ -245,13 +250,18 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     private MainActivityViewModel convertToViewModel(RssChannel channel) {
-        Calendar todayUTC = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
-        Calendar itemDayUTC = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
+        return convertToViewModel(this, channel, CalendarHelper.supplyUTC());
+    }
 
-        String hgCol = getString(R.string.const_hg_cl);
+    public static MainActivityViewModel convertToViewModel(Context context, RssChannel channel,
+                                                           final Calendar calItemUTC) {
+        final int currentYear = calItemUTC.get(Calendar.YEAR);
+        final int currentMonth = calItemUTC.get(Calendar.MONTH);
+        String hgCol = context.getString(R.string.const_hg_cl);
         String city = "";
         long lastUpdateUTC = -1;
         List<ForecastItem> items = new ArrayList<>(channel.getItems().size());
+        int mod = 0;
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
             int pos = rssTitle.lastIndexOf(',');
@@ -262,7 +272,25 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     city = rssTitle.substring(0, pos);
                 }
                 title = rssTitle.substring(pos + 1).trim();
-                itemDateUTC = toDateUTC(title, todayUTC, itemDayUTC);
+                if (tryParseDayMonthUTC(title, calItemUTC)) {
+                    // Handle situation when item's day was in previous year
+                    if (currentMonth == Calendar.JANUARY) {
+                        if (calItemUTC.get(Calendar.MONTH) == Calendar.DECEMBER) {
+                            mod = -1; // decrease year for currently parsed item
+                        } else {
+                            mod = 0; // reset modifier
+                        }
+                    }
+                    calItemUTC.set(Calendar.YEAR, currentYear + mod);
+                    itemDateUTC = calItemUTC.getTimeInMillis();
+                    // Handle situation when the following items' days will be in next year
+                    if (currentMonth == Calendar.DECEMBER &&
+                            calItemUTC.get(Calendar.MONTH) == Calendar.DECEMBER &&
+                            calItemUTC.get(Calendar.DAY_OF_MONTH) == 31) {
+                        mod = 1; // increase year for each next parsed items
+                    }
+
+                }
             } else {
                 title = rssTitle;
             }
@@ -280,11 +308,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             if (pos != -1 && lastUpdateUTC == -1) {
                 String dateInfo = rssSource.substring(pos + 1);
 
-                Matcher m = patternActualDate.matcher(dateInfo);
+                Matcher m = PATTERN_FORECAST_DATE.matcher(dateInfo);
                 if (m.matches()) {
                     String dateString = m.group(2) + " " + m.group(3);
                     try {
-                        DF_SOURCE.get().setTimeZone(TimeZone.getTimeZone("UTC"));
                         Date d = DF_SOURCE.get().parse(dateString);
                         lastUpdateUTC = d.getTime();
                     } catch (ParseException ignored) {}
@@ -302,23 +329,25 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         return model;
     }
 
-    private static long toDateUTC(String title, Calendar todayUTC, Calendar itemDayUTC) {
+    private static boolean tryParseDayMonthUTC(String title, Calendar itemDayUTC) {
         try {
             itemDayUTC.setTime(DF_LIST_ITEM_TITLE.get().parse(title));
-            itemDayUTC.set(Calendar.YEAR, todayUTC.get(Calendar.YEAR));
-            return itemDayUTC.getTimeInMillis();
+            return true;
         } catch (Exception e) {
-            return -1;
+            return false;
         }
     }
 
     private static List<ListViewItemModel> convert(List<ForecastItem> items) {
+        return convert(items, CalendarHelper.supply(TimeZone.getDefault()));
+    }
+
+    public static List<ListViewItemModel> convert(List<ForecastItem> items, Calendar calToday) {
         List<ListViewItemModel> res = new ArrayList<>(items.size());
 
-        Calendar calToday = CalendarHelper.supply(TimeZone.getDefault());
         // use utc calendar for items since forecast is already tied to location
         Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
-        Locale ru = new Locale("ru");
+
         for (ForecastItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
@@ -326,11 +355,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 calItem.setTimeInMillis(itemDateUTC);
                 String prefix;
                 if (CalendarHelper.ifToday(calToday, calItem)) {
-                    prefix = "Сегодня";
+                    prefix = Constants.RU_TODAY;
                 } else if (CalendarHelper.ifTomorrow(calToday, calItem)) {
-                    prefix = "Завтра";
+                    prefix = Constants.RU_TOMORROW;
                 } else {
-                    prefix = calItem.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, ru);
+                    prefix = calItem.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
                     prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
                 }
                 title = prefix + ", " + item.getTitle();

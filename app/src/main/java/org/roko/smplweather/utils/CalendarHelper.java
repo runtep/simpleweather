@@ -10,8 +10,18 @@ public final class CalendarHelper {
         return Calendar.getInstance(tz);
     }
 
+    public static Calendar supplyUTC() {
+        return supply(TimeZone.getTimeZone("UTC"));
+    }
+
     public static Calendar supply(TimeZone tz, long millis) {
-        Calendar cal = Calendar.getInstance(tz);
+        Calendar cal = supply(tz);
+        cal.setTimeInMillis(millis);
+        return cal;
+    }
+
+    public static Calendar supplyUTC(long millis) {
+        Calendar cal = supplyUTC();
         cal.setTimeInMillis(millis);
         return cal;
     }
