@@ -24,8 +24,8 @@ import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
 import org.roko.smplweather.model.City;
-import org.roko.smplweather.model.ListItemViewModel;
 import org.roko.smplweather.model.SearchActivityViewModel;
+import org.roko.smplweather.model.SearchResultItemModel;
 import org.roko.smplweather.tasks.TaskAction;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.List;
 public class SearchResultsActivity extends AppCompatActivity implements RequestCallback<TaskResult> {
 
     private NetworkFragment mNetworkFragment;
-    private MyAdapter myAdapter;
+    private MyAdapter<SearchResultItemModel> myAdapter;
     private EditText mEditText;
 
     private boolean isRequestRunning;
@@ -53,7 +53,7 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
             actionBar.setTitle(getString(R.string.search_title));
         }
 
-        myAdapter = new MyAdapter(this);
+        myAdapter = new MyAdapter<>(this);
         ListView mListView = (ListView) findViewById(R.id.search_results_lv);
         mListView.setEmptyView(findViewById(R.id.search_results_empty));
         mListView.setAdapter(myAdapter);
@@ -118,7 +118,7 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
     }
 
     private void onListItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-        ListItemViewModel item = (ListItemViewModel) adapterView.getItemAtPosition(position);
+        SearchResultItemModel item = (SearchResultItemModel) adapterView.getItemAtPosition(position);
         String cityId = item.getId();
 
         if (!isRequestRunning) {
@@ -177,7 +177,7 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
         mTextView.setText(R.string.no_data);
 
         if (myAdapter.getCount() > 0) {
-            myAdapter.setItems(Collections.<ListItemViewModel>emptyList());
+            myAdapter.setItems(Collections.<SearchResultItemModel>emptyList());
             myAdapter.notifyDataSetChanged();
         }
     }
@@ -186,11 +186,11 @@ public class SearchResultsActivity extends AppCompatActivity implements RequestC
     private SearchActivityViewModel convert(List<City> cityList) {
         SearchActivityViewModel viewModel = new SearchActivityViewModel();
         if (!cityList.isEmpty()) {
-            List<ListItemViewModel> items = new ArrayList<>(cityList.size());
+            List<SearchResultItemModel> items = new ArrayList<>(cityList.size());
             for (City city : cityList) {
                 String title = city.getTitle();
                 String subtitle = city.getPath();
-                ListItemViewModel item = new ListItemViewModel(city.getId(), title, subtitle);
+                SearchResultItemModel item = new SearchResultItemModel(city.getId(), title, subtitle);
                 items.add(item);
             }
             viewModel.setItems(items);

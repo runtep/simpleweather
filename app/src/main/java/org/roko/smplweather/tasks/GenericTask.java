@@ -6,7 +6,7 @@ import android.os.AsyncTask;
 
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.RequestCallback;
-import org.roko.smplweather.model.RssResponse;
+import org.roko.smplweather.model.xml.RssResponse;
 import org.roko.smplweather.model.json.SearchCityResponse;
 
 import java.util.List;

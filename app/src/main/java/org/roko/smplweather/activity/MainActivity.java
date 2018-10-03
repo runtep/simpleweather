@@ -22,11 +22,11 @@ import org.roko.smplweather.R;
 import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
-import org.roko.smplweather.model.ForecastListItem;
-import org.roko.smplweather.model.ListItemViewModel;
+import org.roko.smplweather.model.ForecastItem;
+import org.roko.smplweather.model.ListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
-import org.roko.smplweather.model.RssChannel;
-import org.roko.smplweather.model.RssItem;
+import org.roko.smplweather.model.xml.RssChannel;
+import org.roko.smplweather.model.xml.RssItem;
 import org.roko.smplweather.tasks.TaskAction;
 import org.roko.smplweather.utils.CalendarHelper;
 
@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         String hgCol = getString(R.string.const_hg_cl);
         String city = "";
         long lastUpdateUTC = -1;
-        List<ForecastListItem> items = new ArrayList<>(channel.getItems().size());
+        List<ForecastItem> items = new ArrayList<>(channel.getItems().size());
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
             int pos = rssTitle.lastIndexOf(',');
@@ -291,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 }
             }
 
-            items.add(new ForecastListItem(title, details.toString(), itemDateUTC));
+            items.add(new ForecastItem(title, details.toString(), itemDateUTC));
         }
 
         MainActivityViewModel model = new MainActivityViewModel();
@@ -312,14 +312,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private static List<ListItemViewModel> convert(List<ForecastListItem> items) {
-        List<ListItemViewModel> res = new ArrayList<>(items.size());
+    private static List<ListViewItemModel> convert(List<ForecastItem> items) {
+        List<ListViewItemModel> res = new ArrayList<>(items.size());
 
         Calendar calToday = CalendarHelper.supply(TimeZone.getDefault());
         // use utc calendar for items since forecast is already tied to location
         Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
         Locale ru = new Locale("ru");
-        for (ForecastListItem item : items) {
+        for (ForecastItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
             if (itemDateUTC != -1) {
@@ -339,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             String desc = item.getDescription();
 
-            res.add(new ListItemViewModel(title, desc));
+            res.add(new ListViewItemModel(title, desc));
         }
 
         return res;

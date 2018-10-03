@@ -1,8 +1,8 @@
 package org.roko.smplweather.tasks;
 
 import org.roko.smplweather.model.City;
-import org.roko.smplweather.model.RssChannel;
-import org.roko.smplweather.model.RssResponse;
+import org.roko.smplweather.model.xml.RssChannel;
+import org.roko.smplweather.model.xml.RssResponse;
 import org.roko.smplweather.model.json.Result;
 import org.roko.smplweather.model.json.SearchCityResponse;
 

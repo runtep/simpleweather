@@ -3,13 +3,13 @@ package org.roko.smplweather.model;
 import java.util.List;
 
 public class SearchActivityViewModel {
-    private List<ListItemViewModel> items;
+    private List<SearchResultItemModel> items;
 
-    public List<ListItemViewModel> getItems() {
+    public List<SearchResultItemModel> getItems() {
         return items;
     }
 
-    public void setItems(List<ListItemViewModel> items) {
+    public void setItems(List<SearchResultItemModel> items) {
         this.items = items;
     }
 }

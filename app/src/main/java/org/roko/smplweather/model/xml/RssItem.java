@@ -1,4 +1,4 @@
-package org.roko.smplweather.model;
+package org.roko.smplweather.model.xml;
 
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
