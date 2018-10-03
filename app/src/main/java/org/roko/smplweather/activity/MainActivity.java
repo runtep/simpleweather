@@ -28,6 +28,7 @@ import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.RssChannel;
 import org.roko.smplweather.model.RssItem;
 import org.roko.smplweather.tasks.TaskAction;
+import org.roko.smplweather.utils.CalendarHelper;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -244,8 +245,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     private MainActivityViewModel convertToViewModel(RssChannel channel) {
-        Calendar todayUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
-        Calendar itemDayUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
+        Calendar todayUTC = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
+        Calendar itemDayUTC = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
 
         String hgCol = getString(R.string.const_hg_cl);
         String city = "";
@@ -314,15 +315,25 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private static List<ListItemViewModel> convert(List<ForecastListItem> items) {
         List<ListItemViewModel> res = new ArrayList<>(items.size());
 
-        Calendar calUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.getDefault());
-
+        Calendar calToday = CalendarHelper.supply(TimeZone.getDefault());
+        // use utc calendar for items since forecast is already tied to location
+        Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
+        Locale ru = new Locale("ru");
         for (ForecastListItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
             if (itemDateUTC != -1) {
-                calUTC.setTimeInMillis(itemDateUTC);
-                String weekdayName = calUTC.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
-                title = weekdayName + ", " + item.getTitle();
+                calItem.setTimeInMillis(itemDateUTC);
+                String prefix;
+                if (CalendarHelper.ifToday(calToday, calItem)) {
+                    prefix = "Сегодня";
+                } else if (CalendarHelper.ifTomorrow(calToday, calItem)) {
+                    prefix = "Завтра";
+                } else {
+                    prefix = calItem.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, ru);
+                    prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
+                }
+                title = prefix + ", " + item.getTitle();
             } else {
                 title = item.getTitle();
             }
