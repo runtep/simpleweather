@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private boolean isRequestRunning = false;
 
     private MyAdapter myAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private TextView mFooter;
 
     private MainActivityVewModel model;
@@ -73,6 +75,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadRss(getStoredRssId());
+            }
+        });
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle("");
@@ -80,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
         myAdapter = new MyAdapter(this);
         ListView mListView = (ListView) findViewById(R.id.listView);
-        mListView.setEmptyView(findViewById(R.id.emptyElement));
         mListView.setAdapter(myAdapter);
 
         mFooter = (TextView) findViewById(R.id.footer);
@@ -124,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private void loadRss(@NonNull String rssId) {
         if (!isRequestRunning) {
             isRequestRunning = true;
+            mSwipeRefreshLayout.setRefreshing(true);
             mNetworkFragment.startTask(TaskAction.READ_RSS_BY_ID, rssId);
         }
     }
@@ -173,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
 
         isRequestRunning = false;
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
