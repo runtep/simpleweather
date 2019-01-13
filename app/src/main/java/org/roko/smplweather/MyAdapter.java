@@ -1,6 +1,7 @@
 package org.roko.smplweather;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,16 +46,27 @@ public class MyAdapter<T extends ListViewItemModel> extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = mLayoutInflater.inflate(R.layout.item, parent, false);
+            convertView = mLayoutInflater.inflate(R.layout.card, parent, false);
         }
 
         ListViewItemModel item = items.get(position);
 
-        TextView tvTitle = (TextView) convertView.findViewById(R.id.itmTitle);
+        TextView tvTitle = convertView.findViewById(R.id.itmTitle);
         tvTitle.setText(item.getTitle());
-        TextView tvDescription = (TextView) convertView.findViewById(R.id.itmDescription);
+        TextView tvDescription = convertView.findViewById(R.id.itmDescription);
         tvDescription.setText(item.getDescription());
+        TextView tvTempDaily = convertView.findViewById(R.id.tempDaily);
+        tvTempDaily.setText(item.getTempDaily());
+        TextView tvTempNightly = convertView.findViewById(R.id.tempNightly);
+        tvTempNightly.setText(item.getTempNightly());
+
+        if (TextUtils.isEmpty(item.getTempDaily()) && TextUtils.isEmpty(item.getTempNightly())) {
+            TextView tvDivider = convertView.findViewById(R.id.tempDivider);
+            tvDivider.setVisibility(View.GONE);
+        }
 
         return convertView;
     }
+
+
 }

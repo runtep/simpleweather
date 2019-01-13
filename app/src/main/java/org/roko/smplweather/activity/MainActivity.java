@@ -64,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private static Pattern PATTERN_FORECAST_DATE =
             Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
 
+    private static Pattern PATTERN_FORECAST_TEMPS =
+            Pattern.compile("Температура\\s+ночью\\s+(-?\\d+.+),\\s+дн[её]м\\s+(-?\\d+.+)[.\\n]");
+
     private static ThreadLocal<SimpleDateFormat> DF_SOURCE = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
@@ -459,8 +462,21 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     }
                 }
             }
+            String detailsString = details.toString();
+            ForecastItem fi = new ForecastItem(title, detailsString, itemDateUTC);
 
-            items.add(new ForecastItem(title, details.toString(), itemDateUTC));
+            Matcher m = PATTERN_FORECAST_TEMPS.matcher(detailsString);
+            if (m.find()) {
+                String nightly = m.group(1);
+                String daily = m.group(2);
+                detailsString = m.replaceFirst("");
+
+                fi.setTempDaily(daily);
+                fi.setTempNightly(nightly);
+                fi.setDescription(detailsString);
+            }
+
+            items.add(fi);
         }
 
         MainActivityViewModel model = new MainActivityViewModel();
@@ -510,7 +526,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             String desc = item.getDescription();
 
-            res.add(new ListViewItemModel(title, desc));
+            ListViewItemModel vm = new ListViewItemModel(title, desc);
+            vm.setTempDaily(item.getTempDaily());
+            vm.setTempNightly(item.getTempNightly());
+
+            res.add(vm);
         }
 
         return res;

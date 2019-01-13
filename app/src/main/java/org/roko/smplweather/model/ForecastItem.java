@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class ForecastItem implements Serializable {
     private String title;
     private String description;
+    private String tempDaily, tempNightly;
     private long dateTimeUTC = -1;
 
     public ForecastItem(String title, String description, long dateTimeUTC) {
@@ -21,7 +22,27 @@ public class ForecastItem implements Serializable {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public long getDateTimeUTC() {
         return dateTimeUTC;
+    }
+
+    public String getTempDaily() {
+        return tempDaily;
+    }
+
+    public void setTempDaily(String tempDaily) {
+        this.tempDaily = tempDaily;
+    }
+
+    public String getTempNightly() {
+        return tempNightly;
+    }
+
+    public void setTempNightly(String tempNightly) {
+        this.tempNightly = tempNightly;
     }
 }
