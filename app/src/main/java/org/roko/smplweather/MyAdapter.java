@@ -7,20 +7,20 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.roko.smplweather.model.ListItemViewModel;
+import org.roko.smplweather.model.ListViewItemModel;
 
 import java.util.Collections;
 import java.util.List;
 
-public class MyAdapter extends BaseAdapter {
+public class MyAdapter<T extends ListViewItemModel> extends BaseAdapter {
     private LayoutInflater mLayoutInflater;
-    private List<ListItemViewModel> items = Collections.emptyList();
+    private List<T> items = Collections.emptyList();
 
     public MyAdapter(Context ctx) {
         this.mLayoutInflater = LayoutInflater.from(ctx);
     }
 
-    public void setItems(List<ListItemViewModel> items) {
+    public void setItems(List<T> items) {
         this.items = items;
     }
 
@@ -30,7 +30,7 @@ public class MyAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public T getItem(int position) {
         if (items.size() <= position) {
             throw new IllegalArgumentException("Index \"" + position + "\" is out of range");
         }
@@ -48,7 +48,7 @@ public class MyAdapter extends BaseAdapter {
             convertView = mLayoutInflater.inflate(R.layout.item, parent, false);
         }
 
-        ListItemViewModel item = items.get(position);
+        ListViewItemModel item = items.get(position);
 
         TextView tvTitle = (TextView) convertView.findViewById(R.id.itmTitle);
         tvTitle.setText(item.getTitle());
