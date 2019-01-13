@@ -12,6 +12,7 @@ public final class Constants {
     public static final String BUNDLE_KEY_SESSION_STORAGE = "org.roko.smplweather.SESSION_STORAGE";
 
     public static final String BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL = "mainActivityViewModel";
+    public static final String BUNDLE_KEY_SUGGESTIONS_MODEL = "suggestionsModel";
 
     public static final String RU_TODAY = "Сегодня";
     public static final String RU_TOMORROW = "Завтра";

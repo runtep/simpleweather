@@ -1,6 +1,8 @@
 package org.roko.smplweather.model;
 
-public class City {
+import java.io.Serializable;
+
+public class City implements Serializable {
     private String id;
     private String title;
     private String path;

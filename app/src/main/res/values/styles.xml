@@ -1,5 +1,13 @@
 <resources>
     <style name="CustomAppTheme" parent="Theme.AppCompat.Light">
         <item name="android:windowActionBar">true</item>
+
+        <item name="android:dropDownItemStyle">@style/CustomDropdownStyle</item>
+    </style>
+    <style name="CustomDropdownStyle" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textAppearance">@style/CustomAppearance</item>
+    </style>
+    <style name="CustomAppearance" parent="TextAppearance.AppCompat.Widget.DropDownItem">
+        <item name="android:textSize">12sp</item>
     </style>
 </resources>

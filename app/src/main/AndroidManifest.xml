@@ -11,23 +11,22 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/CustomAppTheme">
-        <activity android:name="org.roko.smplweather.activity.MainActivity"
+        <activity
+            android:name="org.roko.smplweather.activity.MainActivity"
             android:launchMode="singleTop">
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/search" />
+            <meta-data
+                android:name="android.app.default_searchable"
+                android:value="org.roko.smplweather.activity.MainActivity" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="intent_action_select_city" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
-        </activity>
-        <activity android:name="org.roko.smplweather.activity.SearchResultsActivity"
-            android:parentActivityName=".activity.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
         </activity>
     </application>
 
