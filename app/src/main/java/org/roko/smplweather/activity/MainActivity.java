@@ -65,7 +65,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
 
     private static Pattern PATTERN_FORECAST_TEMPS =
-            Pattern.compile("Температура\\s+ночью\\s+(-?\\d+.+),\\s+дн[её]м\\s+(-?\\d+.+)[.\\n]");
+            Pattern.compile("Температура\\s+ночью\\s+(-?\\d+.+),\\s+дн[её]м\\s+(-?\\d+.+)[.\\n]?");
+    private static Pattern PATTERN_FORECAST_WIND = Pattern.compile("Ветер\\s+(.+),\\s+(.+)");
+    private static Pattern PATTERN_FORECAST_PRESS =
+            Pattern.compile("давление\\s+ночью\\s+(-?\\d+)\\s+(.+),\\s+дн[её]м\\s+(-?\\d+)\\s+(.+)");
 
     private static ThreadLocal<SimpleDateFormat> DF_SOURCE = new ThreadLocal<SimpleDateFormat>() {
         @Override
@@ -462,21 +465,84 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     }
                 }
             }
-            String detailsString = details.toString();
-            ForecastItem fi = new ForecastItem(title, detailsString, itemDateUTC);
 
-            Matcher m = PATTERN_FORECAST_TEMPS.matcher(detailsString);
-            if (m.find()) {
-                String nightly = m.group(1);
-                String daily = m.group(2);
-                detailsString = m.replaceFirst("");
+            ForecastItem forecastItem;
 
-                fi.setTempDaily(daily);
-                fi.setTempNightly(nightly);
-                fi.setDescription(detailsString);
+            String[] forecastParts = details.toString().split("\\n");
+            if (forecastParts.length == 5) {
+                forecastItem = new ForecastItem(title, itemDateUTC);
+
+                String conditionsDesc = forecastParts[0];
+
+                StringBuilder forecastDescription = new StringBuilder(conditionsDesc);
+
+                String tempDesc = forecastParts[1];
+                Matcher m = PATTERN_FORECAST_TEMPS.matcher(tempDesc);
+                if (m.find()) {
+                    String tempNightly = m.group(1);
+                    String tempDaily = m.group(2);
+
+                    forecastItem.setTempDaily(tempDaily);
+                    forecastItem.setTempNightly(tempNightly);
+                } else {
+                    forecastDescription.append("\n").append(tempDesc);
+                }
+
+                String windDesc = forecastParts[2];
+                m = PATTERN_FORECAST_WIND.matcher(windDesc);
+                if (m.find()) {
+                    String dirFull = m.group(1);
+                    String velocity = m.group(2);
+
+                    String dirShort = "";
+                    if (dirFull.indexOf('-') != -1) {
+                        String[] parts = dirFull.split("-");
+                        for (String part : parts) {
+                            dirShort += Character.toUpperCase(part.charAt(0));
+                        }
+                    } else {
+                        dirShort += Character.toUpperCase(dirFull.charAt(0));
+                    }
+                    forecastItem.setWind(dirShort + ", " + velocity);
+                } else {
+                    forecastDescription.append("\n").append(windDesc);
+                }
+
+                String pressureDesc = forecastParts[3];
+                m = PATTERN_FORECAST_PRESS.matcher(pressureDesc);
+                if (m.find()) {
+                    String pressNightly = m.group(1);
+                    String pressUnits = m.group(2);
+                    String pressDaily = m.group(3);
+
+                    forecastItem.setPressure((pressDaily.equals(pressNightly) ? pressDaily :
+                            pressDaily + "-" + pressNightly) + " " + pressUnits);
+                } else {
+                    forecastDescription.append("\n").append(pressureDesc);
+                }
+
+                String precipitationDesc = forecastParts[4];
+                forecastDescription.append("\n").append(precipitationDesc);
+
+                forecastItem.setDescription(forecastDescription.toString());
+            } else {
+                forecastItem = new ForecastItem(title, itemDateUTC);
+
+                String detailsString = details.toString();
+
+                Matcher m = PATTERN_FORECAST_TEMPS.matcher(detailsString);
+                if (m.find()) {
+                    String nightly = m.group(1);
+                    String daily = m.group(2);
+                    detailsString = m.replaceFirst("");
+
+                    forecastItem.setTempDaily(daily);
+                    forecastItem.setTempNightly(nightly);
+                }
+                forecastItem.setDescription(detailsString);
             }
 
-            items.add(fi);
+            items.add(forecastItem);
         }
 
         MainActivityViewModel model = new MainActivityViewModel();
@@ -529,6 +595,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             ListViewItemModel vm = new ListViewItemModel(title, desc);
             vm.setTempDaily(item.getTempDaily());
             vm.setTempNightly(item.getTempNightly());
+            vm.setWind(item.getWind());
+            vm.setPressure(item.getPressure());
 
             res.add(vm);
         }

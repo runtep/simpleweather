@@ -4,10 +4,10 @@
     <string name="toast_update_completed">Прогноз получен</string>
     <string name="toast_update_error">Ошибка получения данных</string>
     <string name="dots_menu_btn_refresh">Обновить</string>
-    <string name="footer_actuality">Прогноз актуален на</string>
+    <string name="footer_actuality">Прогноз от</string>
     <string name="toast_no_content">Ничего не найдено</string>
     <string name="toast_network_issue">Сетевое соединение недоступно</string>
     <string name="no_data">Нет данных</string>
     <string name="search_title">Найти город</string>
-    <string name="search_hint">Введите название</string>
+    <string name="search_hint">Город</string>
 </resources>

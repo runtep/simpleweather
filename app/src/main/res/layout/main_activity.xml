@@ -18,13 +18,26 @@
             android:layout_marginTop="6dp"
             android:divider="@null"/>
     </android.support.v4.widget.SwipeRefreshLayout>
-    <TextView
-        android:id="@+id/footer"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:textSize="12sp"
-        android:text="@string/no_data"
-        android:gravity="center_horizontal">
-    </TextView>
+        android:paddingBottom="2dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp">
+        <TextView
+            android:id="@+id/footer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="@string/no_data"
+            android:layout_alignParentLeft="true"
+            android:gravity="left|center_vertical"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="@string/url_main"
+            android:layout_alignParentRight="true"
+            android:gravity="right|center_vertical"/>
+    </RelativeLayout>
 </LinearLayout>

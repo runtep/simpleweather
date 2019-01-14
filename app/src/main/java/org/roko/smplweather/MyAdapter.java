@@ -59,6 +59,10 @@ public class MyAdapter<T extends ListViewItemModel> extends BaseAdapter {
         tvTempDaily.setText(item.getTempDaily());
         TextView tvTempNightly = convertView.findViewById(R.id.tempNightly);
         tvTempNightly.setText(item.getTempNightly());
+        TextView tvWind = convertView.findViewById(R.id.wind);
+        tvWind.setText(item.getWind());
+        TextView tvPressure = convertView.findViewById(R.id.pressure);
+        tvPressure.setText(item.getPressure());
 
         if (TextUtils.isEmpty(item.getTempDaily()) && TextUtils.isEmpty(item.getTempNightly())) {
             TextView tvDivider = convertView.findViewById(R.id.tempDivider);

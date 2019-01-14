@@ -3,14 +3,12 @@ package org.roko.smplweather.model;
 import java.io.Serializable;
 
 public class ForecastItem implements Serializable {
-    private String title;
-    private String description;
-    private String tempDaily, tempNightly;
+    private String title, description; // mandatory fields
     private long dateTimeUTC = -1;
+    private String tempDaily, tempNightly, wind, pressure; // extra fields
 
-    public ForecastItem(String title, String description, long dateTimeUTC) {
+    public ForecastItem(String title, long dateTimeUTC) {
         this.title = title;
-        this.description = description;
         this.dateTimeUTC = dateTimeUTC;
     }
 
@@ -44,5 +42,21 @@ public class ForecastItem implements Serializable {
 
     public void setTempNightly(String tempNightly) {
         this.tempNightly = tempNightly;
+    }
+
+    public String getWind() {
+        return wind;
+    }
+
+    public void setWind(String wind) {
+        this.wind = wind;
+    }
+
+    public String getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(String pressure) {
+        this.pressure = pressure;
     }
 }
