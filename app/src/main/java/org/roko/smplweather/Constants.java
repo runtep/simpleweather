@@ -8,6 +8,8 @@ public final class Constants {
     public static final String PRIVATE_STORAGE_NAME = "org.roko.smplweather.STORAGE";
 
     public static final String PARAM_KEY_RSS_ID = "rssId";
+    public static final String PARAMS_KEY_LAST_UPDATE_MILLIS = "lastUpdateMillis";
+    public static final String PARAMS_KEY_TIME_TO_LIVE_MILLIS = "timeToLiveMillis";
 
     public static final String BUNDLE_KEY_SESSION_STORAGE = "org.roko.smplweather.SESSION_STORAGE";
 

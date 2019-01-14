@@ -61,7 +61,7 @@ public class AppUnitTest {
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
-        Assert.assertTrue("Failed to parse 'last update'", model.getLastUpdateUTC() != -1);
+        Assert.assertTrue("Failed to parse 'last update'", model.getForecastFromUTC() != -1);
 
         checkDateOrder(model.getItems());
     }

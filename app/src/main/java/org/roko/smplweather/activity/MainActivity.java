@@ -11,12 +11,14 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout = findViewById(R.id.swipe_container);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -135,20 +137,13 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
 
         myAdapter = new MyAdapter<>(this);
-        ListView mListView = (ListView) findViewById(R.id.listView);
+        ListView mListView = findViewById(R.id.listView);
         mListView.setAdapter(myAdapter);
 
-        mFooter = (TextView) findViewById(R.id.footer);
+        mFooter = findViewById(R.id.footer);
 
         String urlString = getString(R.string.url_main);
         mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), urlString);
-
-        if (savedInstanceState != null &&
-                savedInstanceState.containsKey(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL)) {
-            this.model = (MainActivityViewModel) savedInstanceState.getSerializable(
-                    Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL);
-            updateUIFromViewModel(this.model);
-        }
     }
 
     @Override
@@ -176,6 +171,20 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
         suggestionsModel = (SuggestionsModel) savedInstanceState.getSerializable(
                 Constants.BUNDLE_KEY_SUGGESTIONS_MODEL);
+        MainActivityViewModel vModel = (MainActivityViewModel) savedInstanceState.getSerializable(
+                Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL);
+        if (vModel != null) {
+            this.model = vModel;
+            updateUIFromViewModel(this.model);
+        }
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        if (this.model == null || isTTLExpired(System.currentTimeMillis())) {
+            loadRss(getStoredRssId());
+        }
     }
 
     @Override
@@ -208,6 +217,21 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
+    private void storeLastUpdateTime(long lastUpdateMillis) {
+        SharedPreferences.Editor editor = getSharedPreferences().edit();
+        editor.putLong(Constants.PARAMS_KEY_LAST_UPDATE_MILLIS, lastUpdateMillis);
+        editor.apply();
+    }
+
+    private void storeTimeToLive(String ttlMinutes) {
+        if (!TextUtils.isEmpty(ttlMinutes) && TextUtils.isDigitsOnly(ttlMinutes)) {
+            SharedPreferences.Editor editor = getSharedPreferences().edit();
+            long ttlMs = Long.parseLong(ttlMinutes) * 60_000L;
+            editor.putLong(Constants.PARAMS_KEY_TIME_TO_LIVE_MILLIS, ttlMs);
+            editor.apply();
+        }
+    }
+
     private void loadRss(@NonNull String rssId) {
         if (!isRequestRunning) {
             isRequestRunning = true;
@@ -224,11 +248,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             myAdapter.setItems(convert(model.getItems()));
             myAdapter.notifyDataSetChanged();
-            long lastUpdateUTC = model.getLastUpdateUTC();
-            if (lastUpdateUTC != -1) {
+            long forecastFrom = model.getForecastFromUTC();
+            if (forecastFrom != -1) {
                 DF_TARGET.get().setTimeZone(TimeZone.getDefault()); // to user's timezone
-                String lastUpdateDateTime = DF_TARGET.get().format(new Date(lastUpdateUTC));
-                String footer = getString(R.string.footer_actuality) + " " + lastUpdateDateTime;
+                String forecastFromDateTime = DF_TARGET.get().format(new Date(forecastFrom));
+                String footer = getString(R.string.footer_actuality) + " " + forecastFromDateTime;
                 mFooter.setText(footer);
             }
         }
@@ -259,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     RssChannel channel = (RssChannel) result.getContent();
                     model = convertToViewModel(channel);
                     updateUIFromViewModel(model);
+                    storeLastUpdateTime(System.currentTimeMillis());
+                    storeTimeToLive(channel.getTtl());
                     messageId = R.string.toast_update_completed;
                 } else if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
                     List<City> cityList = (List<City>) result.getContent();
@@ -396,6 +422,20 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 getString(R.string.default_city_id));
     }
 
+    private long getLastUpdateMillis() {
+        return getSharedPreferences().getLong(Constants.PARAMS_KEY_LAST_UPDATE_MILLIS, -1);
+    }
+
+    private long getTimeToLiveMillis() {
+        return getSharedPreferences().getLong(Constants.PARAMS_KEY_TIME_TO_LIVE_MILLIS, -1);
+    }
+
+    private boolean isTTLExpired(long currentMillis) {
+        long lastUpdate = getLastUpdateMillis();
+        long ttl = getTimeToLiveMillis();
+        return lastUpdate != -1 && ttl != -1 && (currentMillis - lastUpdate > ttl);
+    }
+
     private MainActivityViewModel convertToViewModel(RssChannel channel) {
         return convertToViewModel(this, channel, CalendarHelper.supplyUTC());
     }
@@ -406,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         final int currentMonth = calItemUTC.get(Calendar.MONTH);
         String hgCol = context.getString(R.string.const_hg_cl);
         String city = "";
-        long lastUpdateUTC = -1;
+        long forecastFromUTC = -1;
         List<ForecastItem> items = new ArrayList<>(channel.getItems().size());
         int mod = 0;
         for (RssItem rssItem : channel.getItems()) {
@@ -452,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
             String rssSource = rssItem.getSource();
             pos = rssSource.lastIndexOf(',');
-            if (pos != -1 && lastUpdateUTC == -1) {
+            if (pos != -1 && forecastFromUTC == -1) {
                 String dateInfo = rssSource.substring(pos + 1);
 
                 Matcher m = PATTERN_FORECAST_DATE.matcher(dateInfo);
@@ -460,7 +500,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     String dateString = m.group(2) + " " + m.group(3);
                     try {
                         Date d = DF_SOURCE.get().parse(dateString);
-                        lastUpdateUTC = d.getTime();
+                        forecastFromUTC = d.getTime();
                     } catch (ParseException ignored) {
                     }
                 }
@@ -548,7 +588,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         MainActivityViewModel model = new MainActivityViewModel();
         model.setActionBarTitle(city);
         model.setItems(items);
-        model.setLastUpdateUTC(lastUpdateUTC);
+        model.setForecastFromUTC(forecastFromUTC);
 
         return model;
     }
