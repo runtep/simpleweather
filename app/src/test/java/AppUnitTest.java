@@ -112,8 +112,9 @@ public class AppUnitTest {
             System.out.println(lvItem.getTitle());
         }
 
-        Assert.assertTrue(lvItems.get(1).getTitle().startsWith(Constants.RU_TODAY));
-        Assert.assertTrue(lvItems.get(2).getTitle().startsWith(Constants.RU_TOMORROW));
+        Assert.assertEquals(lvItems.size(), 2);
+        Assert.assertTrue(lvItems.get(0).getTitle().startsWith(Constants.RU_TODAY));
+        Assert.assertTrue(lvItems.get(1).getTitle().startsWith(Constants.RU_TOMORROW));
     }
 
     private static RssChannel provide(Calendar supplier, int itemCount) {

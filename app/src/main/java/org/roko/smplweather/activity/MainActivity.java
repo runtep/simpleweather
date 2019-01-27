@@ -612,6 +612,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         // use utc calendar for items since forecast is already tied to location
         Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
 
+        int todayIdx = -1, idx = 0;
         for (ForecastItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
@@ -620,6 +621,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 String prefix;
                 if (CalendarHelper.ifToday(calToday, calItem)) {
                     prefix = Constants.RU_TODAY;
+                    todayIdx = idx;
                 } else if (CalendarHelper.ifTomorrow(calToday, calItem)) {
                     prefix = Constants.RU_TOMORROW;
                 } else {
@@ -639,6 +641,12 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             vm.setPressure(item.getPressure());
 
             res.add(vm);
+
+            idx++;
+        }
+
+        if (todayIdx > 0) {
+            res = new ArrayList<>(res.subList(todayIdx, res.size()));
         }
 
         return res;
