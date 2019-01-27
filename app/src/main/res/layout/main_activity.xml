@@ -1,43 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/llMain"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:layout_weight="1"
     android:orientation="vertical">
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipe_container"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/llMain"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        <ListView
-            android:id="@+id/listView"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <android.support.v4.widget.SwipeRefreshLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swipe_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="6dp"
-            android:divider="@null"/>
-    </android.support.v4.widget.SwipeRefreshLayout>
-    <RelativeLayout
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <ListView
+                android:id="@+id/listView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="6dp"
+                android:divider="@null"/>
+        </android.support.v4.widget.SwipeRefreshLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="2dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp">
+            <TextView
+                android:id="@+id/footer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:text="@string/no_data"
+                android:layout_alignParentLeft="true"
+                android:gravity="left|center_vertical"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:text="@string/url_main"
+                android:layout_alignParentRight="true"
+                android:gravity="right|center_vertical"/>
+        </RelativeLayout>
+    </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/suggestionsContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="2dp"
-        android:paddingLeft="4dp"
-        android:paddingRight="4dp">
-        <TextView
-            android:id="@+id/footer"
-            android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:layout_gravity="fill">
+        <ListView
+            android:id="@+id/suggestionsView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:text="@string/no_data"
-            android:layout_alignParentLeft="true"
-            android:gravity="left|center_vertical"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:text="@string/url_main"
-            android:layout_alignParentRight="true"
-            android:gravity="right|center_vertical"/>
-    </RelativeLayout>
-</LinearLayout>
+            android:background="@android:color/background_light"/>
+    </LinearLayout>
+</FrameLayout>

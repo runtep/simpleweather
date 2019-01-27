@@ -2,18 +2,12 @@ package org.roko.smplweather.activity;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.widget.CursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -22,18 +16,22 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.roko.smplweather.Constants;
-import org.roko.smplweather.MyAdapter;
+import org.roko.smplweather.adapter.BasicListViewAdapter;
+import org.roko.smplweather.adapter.ForecastListViewAdapter;
 import org.roko.smplweather.R;
 import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.fragment.NetworkFragment;
 import org.roko.smplweather.model.City;
 import org.roko.smplweather.model.ForecastItem;
+import org.roko.smplweather.model.ForecastListViewItemModel;
 import org.roko.smplweather.model.ListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.SuggestionsModel;
@@ -97,26 +95,20 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     };
 
-    private static final String[] COLUMNS = new String[]{
-            BaseColumns._ID,
-            SearchManager.SUGGEST_COLUMN_TEXT_1,
-            SearchManager.SUGGEST_COLUMN_TEXT_2,
-            SearchManager.SUGGEST_COLUMN_INTENT_DATA
-    };
-
     private NetworkFragment mNetworkFragment;
 
     private boolean isRequestRunning = false;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private MyAdapter<ListViewItemModel> myAdapter;
+    private ForecastListViewAdapter mForecastAdapter;
+    private BasicListViewAdapter mSuggestionsAdapter;
     private TextView mFooter;
 
     private MainActivityViewModel model;
     private SuggestionsModel suggestionsModel;
 
     private SearchView mSearchView;
-    private CursorAdapter mCursorAdapter;
+    private MenuItem mSearchMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,9 +128,29 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             actionBar.setTitle("");
         }
 
-        myAdapter = new MyAdapter<>(this);
-        ListView mListView = findViewById(R.id.listView);
-        mListView.setAdapter(myAdapter);
+        mForecastAdapter = new ForecastListViewAdapter(this);
+        ListView mListViewForecast = findViewById(R.id.listView);
+        mListViewForecast.setAdapter(mForecastAdapter);
+
+        mSuggestionsAdapter = new BasicListViewAdapter(this);
+        ListView mListViewSuggestions = findViewById(R.id.suggestionsView);
+        mListViewSuggestions.setAdapter(mSuggestionsAdapter);
+        mListViewSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ListViewItemModel item = (ListViewItemModel) adapterView.getItemAtPosition(i);
+                String cityId = item.get_id();
+                //
+                updateModelAndDisplaySuggestions(Collections.<City>emptyList());
+                collapseSearchView();
+                //
+                if (cityId != null && !cityId.isEmpty()) {
+                    isRequestRunning = true;
+                    mSwipeRefreshLayout.setRefreshing(true);
+                    mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId);
+                }
+            }
+        });
 
         mFooter = findViewById(R.id.footer);
 
@@ -187,27 +199,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String cityId = intent.getStringExtra(SearchManager.QUERY);
-            if (cityId == null) {
-                cityId = intent.getDataString();
-            }
-            suggestionsModel.clear();
-            fillSuggestions(Collections.<City>emptyList());
-            collapseSearchView(mSearchView);
-
-            if (cityId != null && !cityId.isEmpty()) {
-                isRequestRunning = true;
-                mSwipeRefreshLayout.setRefreshing(true);
-                mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId);
-            }
-        }
-    }
-
     private void storeSelected(String selectedRssId) {
         String storedRssId = getStoredRssId();
         if (!storedRssId.equals(selectedRssId)) {
@@ -246,8 +237,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             if (actionBar != null) {
                 actionBar.setTitle(model.getActionBarTitle());
             }
-            myAdapter.setItems(convert(model.getItems()));
-            myAdapter.notifyDataSetChanged();
+            mForecastAdapter.setItems(convert(model.getItems()));
+            mForecastAdapter.notifyDataSetChanged();
             long forecastFrom = model.getForecastFromUTC();
             if (forecastFrom != -1) {
                 DF_TARGET.get().setTimeZone(TimeZone.getDefault()); // to user's timezone
@@ -258,18 +249,22 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private void fillSuggestions(List<City> cityList) {
-        mCursorAdapter.changeCursor(prepareCursor(cityList));
-    }
-
-    private Cursor prepareCursor(List<City> cityList) {
-        MatrixCursor mCursor = new MatrixCursor(COLUMNS);
-        int number = 1;
-        for (City city : cityList) {
-            MatrixCursor.RowBuilder rowBuilder = mCursor.newRow();
-            rowBuilder.add(number++).add(city.getTitle()).add(city.getPath()).add(city.getId());
+    private void updateModelAndDisplaySuggestions(List<City> cityList) {
+        if (cityList.isEmpty()) {
+            if (suggestionsModel != null) {
+                suggestionsModel.clear();
+            }
+            mSuggestionsAdapter.setItems(Collections.emptyList());
+        } else {
+            List<ListViewItemModel> items = convertToItemModel(cityList);
+            if (suggestionsModel == null) {
+                suggestionsModel = new SuggestionsModel(items);
+            } else {
+                suggestionsModel.setSuggestions(items);
+            }
+            mSuggestionsAdapter.setItems(items);
         }
-        return mCursor;
+        mSuggestionsAdapter.notifyDataSetChanged();
     }
 
     // RequestCallback -----------------------------------------------------------------------------
@@ -288,8 +283,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     messageId = R.string.toast_update_completed;
                 } else if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
                     List<City> cityList = (List<City>) result.getContent();
-                    suggestionsModel = new SuggestionsModel(cityList);
-                    fillSuggestions(cityList);
+                    updateModelAndDisplaySuggestions(cityList);
                 } else if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
                     String rssId = (String) result.getContent();
                     storeSelected(rssId);
@@ -298,8 +292,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             break;
             case TaskResult.Code.NULL_CONTENT: {
                 if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
-                    suggestionsModel.clear();
-                    fillSuggestions(Collections.<City>emptyList());
+                    updateModelAndDisplaySuggestions(Collections.<City>emptyList());
                 }
                 messageId = R.string.toast_no_content;
             }
@@ -363,32 +356,47 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 return true;
             }
         });
+        mSearchMenuItem = menu.findItem(R.id.action_search);
+        mSearchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
+                linearLayout.setVisibility(View.VISIBLE);
 
-        Cursor mCursor;
+                ListView lv = findViewById(R.id.listView);
+                lv.setEnabled(false);
+                SwipeRefreshLayout srl = findViewById(R.id.swipe_container);
+                srl.setEnabled(false);
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
+                linearLayout.setVisibility(View.GONE);
+
+                ListView lv = findViewById(R.id.listView);
+                lv.setEnabled(true);
+                SwipeRefreshLayout srl = findViewById(R.id.swipe_container);
+                srl.setEnabled(true);
+
+                mSuggestionsAdapter.setItems(Collections.emptyList());
+                mSuggestionsAdapter.notifyDataSetChanged();
+
+                return true;
+            }
+        });
+
         boolean restore = suggestionsModel != null && !suggestionsModel.isEmpty();
         if (restore) {
-            mCursor = prepareCursor(suggestionsModel.getSuggestions());
-            mSearchView.setQuery(suggestionsModel.getQuery(), false);
-            suggestionsModel.clear();
-        } else {
-            mCursor = new MatrixCursor(COLUMNS); // empty cursor
-        }
-
-        mCursorAdapter = new SimpleCursorAdapter(
-                this,
-                R.layout.suggestion,
-                mCursor,
-                new String[]{
-                        SearchManager.SUGGEST_COLUMN_TEXT_1,
-                        SearchManager.SUGGEST_COLUMN_TEXT_2},
-                new int[]{
-                        R.id.suggestionTitle,
-                        R.id.suggestionSubtitle},
-                0);
-        mSearchView.setSuggestionsAdapter(mCursorAdapter);
-
-        if (restore) {
             mSearchView.setIconified(false);
+            mSearchMenuItem.expandActionView();
+
+            mSuggestionsAdapter.setItems(suggestionsModel.getSuggestions());
+            mSuggestionsAdapter.notifyDataSetChanged();
+
+            mSearchView.setQuery(new String(suggestionsModel.getQuery()), false);
+            suggestionsModel.clear();
         }
 
         return true;
@@ -404,11 +412,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         return super.onOptionsItemSelected(item);
     }
 
-    private void collapseSearchView(SearchView v) {
-        if (v != null) {
-            v.setQuery("", false);
-            v.setIconified(true);
-        }
+    private void collapseSearchView() {
+        mSearchView.setQuery("", false);
+        mSearchView.setIconified(true);
+        mSearchMenuItem.collapseActionView();
     }
 
     //----------------------------------------------------------------------------------------------
@@ -593,6 +600,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         return model;
     }
 
+    private static List<ListViewItemModel> convertToItemModel(List<City> cityList) {
+        List<ListViewItemModel> res = new ArrayList<>(cityList.size());
+        for (City city : cityList) {
+            res.add(new ListViewItemModel(city.getId(), city.getTitle(), city.getPath()));
+        }
+        return res;
+    }
+
     private static boolean tryParseDayMonthUTC(String title, Calendar itemDayUTC) {
         try {
             itemDayUTC.setTime(DF_LIST_ITEM_TITLE.get().parse(title));
@@ -602,12 +617,12 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private static List<ListViewItemModel> convert(List<ForecastItem> items) {
+    private static List<ForecastListViewItemModel> convert(List<ForecastItem> items) {
         return convert(items, CalendarHelper.supply(TimeZone.getDefault()));
     }
 
-    public static List<ListViewItemModel> convert(List<ForecastItem> items, Calendar calToday) {
-        List<ListViewItemModel> res = new ArrayList<>(items.size());
+    public static List<ForecastListViewItemModel> convert(List<ForecastItem> items, Calendar calToday) {
+        List<ForecastListViewItemModel> res = new ArrayList<>(items.size());
 
         // use utc calendar for items since forecast is already tied to location
         Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
@@ -634,7 +649,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             String desc = item.getDescription();
 
-            ListViewItemModel vm = new ListViewItemModel(title, desc);
+            ForecastListViewItemModel vm = new ForecastListViewItemModel(title, desc);
             vm.setTempDaily(item.getTempDaily());
             vm.setTempNightly(item.getTempNightly());
             vm.setWind(item.getWind());

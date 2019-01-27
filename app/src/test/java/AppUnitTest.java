@@ -9,6 +9,7 @@ import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
 import org.roko.smplweather.activity.MainActivity;
 import org.roko.smplweather.model.ForecastItem;
+import org.roko.smplweather.model.ForecastListViewItemModel;
 import org.roko.smplweather.model.ListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.xml.RssChannel;
@@ -106,7 +107,7 @@ public class AppUnitTest {
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
 
         setDate(startPoint, 2018, Calendar.DECEMBER, 31); // reset
-        List<ListViewItemModel> lvItems = MainActivity.convert(model.getItems(), startPoint);
+        List<ForecastListViewItemModel> lvItems = MainActivity.convert(model.getItems(), startPoint);
 
         for (ListViewItemModel lvItem : lvItems) {
             System.out.println(lvItem.getTitle());
