@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingLeft="6dp"
+    android:paddingRight="6dp">
+
+    <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        card_view:cardCornerRadius="1dp"
+        card_view:cardElevation="1dp"
+        card_view:cardMaxElevation="2dp"
+        card_view:cardUseCompatPadding="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
+                <TextView
+                    android:id="@+id/hiTemperature"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    tools:text="-22.9°C"
+                    android:textAlignment="center"
+                    android:textSize="18sp"
+                    android:textStyle="normal" />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp" />
+                <TextView
+                    android:id="@+id/hiTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="bottom"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
+                    android:textStyle="normal"
+                    tools:text="10:00" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/hiDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="14sp"
+                    tools:text="Прогноз, наличие осадков" />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp" />
+                <TextView
+                    android:id="@+id/hiWind"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="12sp"
+                    tools:text="Ветер Ю, 2 м/с" />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp" />
+                <TextView
+                    android:id="@+id/hiHumidityLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="12sp"
+                    tools:text="Влажность 45%" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp">
+
+                <TextView
+                    android:id="@+id/hiPrecipLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    tools:text="0.2 мм"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
+                    android:textStyle="normal" />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp" />
+                <TextView
+                    android:id="@+id/hiPrecipProbability"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    tools:text="55%"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
+                    android:textStyle="normal" />
+            </LinearLayout>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+</LinearLayout>

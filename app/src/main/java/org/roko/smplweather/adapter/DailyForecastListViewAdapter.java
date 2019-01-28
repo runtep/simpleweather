@@ -6,16 +6,15 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.roko.smplweather.R;
-import org.roko.smplweather.model.ForecastListViewItemModel;
+import org.roko.smplweather.model.DailyForecastListViewItemModel;
 
-public class ForecastListViewAdapter extends BasicListViewAdapter<ForecastListViewItemModel> {
-    public ForecastListViewAdapter(Context ctx) {
-        super(ctx);
-        defineCustomLayout(R.layout.card);
+public class DailyForecastListViewAdapter extends BasicListViewAdapter<DailyForecastListViewItemModel> {
+    public DailyForecastListViewAdapter(Context ctx) {
+        super(ctx, R.layout.card);
     }
 
     @Override
-    protected void propagateItemDataToView(ForecastListViewItemModel item, View convertView) {
+    protected void propagateItemDataToView(DailyForecastListViewItemModel item, View convertView) {
         super.propagateItemDataToView(item, convertView);
 
         TextView tvTempDaily = convertView.findViewById(R.id.tempDaily);

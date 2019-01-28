@@ -22,16 +22,24 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Stream;
+
 import org.roko.smplweather.Constants;
 import org.roko.smplweather.adapter.BasicListViewAdapter;
-import org.roko.smplweather.adapter.ForecastListViewAdapter;
 import org.roko.smplweather.R;
 import org.roko.smplweather.RequestCallback;
 import org.roko.smplweather.TaskResult;
+import org.roko.smplweather.adapter.HourlyListViewAdapter;
 import org.roko.smplweather.fragment.NetworkFragment;
 import org.roko.smplweather.model.City;
-import org.roko.smplweather.model.ForecastItem;
-import org.roko.smplweather.model.ForecastListViewItemModel;
+import org.roko.smplweather.model.DailyForecastItem;
+import org.roko.smplweather.model.DailyForecastListViewItemModel;
+import org.roko.smplweather.model.HourlyListViewForecastModel;
+import org.roko.smplweather.model.HourlyListViewItemModel;
+import org.roko.smplweather.model.HourlyDataWrapper;
+import org.roko.smplweather.model.HourlyForecast;
+import org.roko.smplweather.model.HourlyListViewDividerModel;
 import org.roko.smplweather.model.ListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.SuggestionsModel;
@@ -49,6 +57,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private static final String DATE_SOURCE_PATTERN = "dd.MM.yyyy HH:mm'('z')'";
     private static final String DATE_TARGET_PATTERN = "dd MMM HH:mm";
-    private static final String DATE_PATTERN_ITEM_TITLE = "dd MMMMM";
+    private static final String DATE_PATTERN_ITEM_TITLE = "dd MMMM";
 
     private static final Locale LOCALE_RU = new Locale("ru");
 
@@ -100,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private boolean isRequestRunning = false;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private ForecastListViewAdapter mForecastAdapter;
+    private HourlyListViewAdapter mForecastAdapter;
     private BasicListViewAdapter mSuggestionsAdapter;
     private TextView mFooter;
 
@@ -119,7 +128,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                loadRss(getStoredRssId());
+//                loadRss(getStoredRssId());
+                fetchForecast(getStoredCityId());
             }
         });
 
@@ -128,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             actionBar.setTitle("");
         }
 
-        mForecastAdapter = new ForecastListViewAdapter(this);
+        mForecastAdapter = new HourlyListViewAdapter(this);
         ListView mListViewForecast = findViewById(R.id.listView);
         mListViewForecast.setAdapter(mForecastAdapter);
 
@@ -145,9 +155,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 collapseSearchView();
                 //
                 if (cityId != null && !cityId.isEmpty()) {
+                    storeCityId(cityId);
                     isRequestRunning = true;
                     mSwipeRefreshLayout.setRefreshing(true);
-                    mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId);
+                    mNetworkFragment.startTask(TaskAction.GET_HOURLY_FORECAST, cityId);
                 }
             }
         });
@@ -195,7 +206,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         if (this.model == null || isTTLExpired(System.currentTimeMillis())) {
-            loadRss(getStoredRssId());
+//            loadRss(getStoredRssId());
+            fetchForecast(getStoredCityId());
         }
     }
 
@@ -204,6 +216,15 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         if (!storedRssId.equals(selectedRssId)) {
             SharedPreferences.Editor editor = getSharedPreferences().edit();
             editor.putString(Constants.PARAM_KEY_RSS_ID, selectedRssId);
+            editor.apply();
+        }
+    }
+
+    private void storeCityId(String cityId) {
+        String stored = getStoredCityId();
+        if (!stored.equals(cityId)) {
+            SharedPreferences.Editor editor = getSharedPreferences().edit();
+            editor.putString(Constants.PARAMS_KEY_CITY_ID, cityId);
             editor.apply();
         }
     }
@@ -231,13 +252,21 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
+    private void fetchForecast(@NonNull String cityId) {
+        if (!isRequestRunning) {
+            isRequestRunning = true;
+            mSwipeRefreshLayout.setRefreshing(true);
+            mNetworkFragment.startTask(TaskAction.GET_HOURLY_FORECAST, cityId);
+        }
+    }
+
     private void updateUIFromViewModel(MainActivityViewModel model) {
         if (model != null) {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.setTitle(model.getActionBarTitle());
             }
-            mForecastAdapter.setItems(convert(model.getItems()));
+            mForecastAdapter.setItems(model.getHourlyDataItems());
             mForecastAdapter.notifyDataSetChanged();
             long forecastFrom = model.getForecastFromUTC();
             if (forecastFrom != -1) {
@@ -270,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     // RequestCallback -----------------------------------------------------------------------------
 
     @Override
-    public void handleResult(String taskAction, @NonNull TaskResult result) {
+    public void handleResult(String taskAction, @NonNull TaskResult result, Bundle out) {
         int messageId = -1;
         switch (result.getCode()) {
             case TaskResult.Code.SUCCESS: {
@@ -287,6 +316,56 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 } else if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
                     String rssId = (String) result.getContent();
                     storeSelected(rssId);
+                } else if (TaskAction.GET_HOURLY_FORECAST.equals(taskAction)) {
+                    HourlyForecast hf = (HourlyForecast) result.getContent();
+                    if (hf.isEmpty()) {
+                        messageId = R.string.toast_no_content;
+                        break;
+                    }
+                    List<HourlyListViewItemModel> hourlyListViewItemModels = new ArrayList<>();
+                    model = new MainActivityViewModel();
+                    model.setHourlyDataItems(hourlyListViewItemModels);
+                    model.setForecastFromUTC(CalendarHelper.provideForUTC().getTimeInMillis());
+
+                    // Obtain wall-time of user`s device ported into UTC. This trick is needed
+                    // since forecast is provided in local time of considered city but stored as UTC
+                    Calendar local = CalendarHelper.provideFor(TimeZone.getDefault());
+                    Calendar dtNow = CalendarHelper.provideForUTC();
+                    dtNow.set(Calendar.YEAR, local.get(Calendar.YEAR));
+                    dtNow.set(Calendar.MONTH, local.get(Calendar.MONTH));
+                    dtNow.set(Calendar.DAY_OF_YEAR, local.get(Calendar.DAY_OF_YEAR));
+                    dtNow.set(Calendar.HOUR_OF_DAY, local.get(Calendar.HOUR_OF_DAY));
+                    dtNow.set(Calendar.MINUTE, 0);
+                    dtNow.set(Calendar.SECOND, 0);
+                    dtNow.set(Calendar.MILLISECOND, 0);
+
+                    // dateTime of each entry is assumed to be in target city`s timezone, but represented as UTC
+                    Calendar dtOfEntry = CalendarHelper.provideForUTC();
+                    Set<Long> setOfDaysAsMillis = hf.getDaysAsMillis();
+                    List<Long> listOfDaysAsMillis = Stream.of(setOfDaysAsMillis).toList();
+                    Collections.sort(listOfDaysAsMillis);
+                    for (Long day : listOfDaysAsMillis) {
+                        dtOfEntry.setTimeInMillis(day);
+                        if (CalendarHelper.ifPrecedingDay(dtNow, dtOfEntry)) {
+                            continue;
+                        }
+                        String prefix;
+                        if (CalendarHelper.ifSameDay(dtNow, dtOfEntry)) {
+                            prefix = Constants.RU_TODAY;
+                        } else if (CalendarHelper.ifTomorrow(dtNow, dtOfEntry)) {
+                            prefix = Constants.RU_TOMORROW;
+                        } else {
+                            prefix = dtOfEntry.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
+                            prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
+                        }
+                        String title = prefix + ", " + DF_LIST_ITEM_TITLE.get().format(dtOfEntry.getTime());
+
+                        hourlyListViewItemModels.add(new HourlyListViewDividerModel(title));
+                        List<HourlyDataWrapper> hourlyData = hf.getHourlyDataForDay(day);
+                        hourlyListViewItemModels.addAll(convert2(hourlyData));
+                    }
+
+                    updateUIFromViewModel(model);
                 }
             }
             break;
@@ -301,6 +380,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 messageId = R.string.toast_network_issue;
             }
             break;
+            case TaskResult.Code.TIMEOUT_EXPIRED: {
+                messageId = R.string.toast_timeout_expired;
+            }
+            break;
             default:
                 messageId = R.string.toast_update_error;
         }
@@ -308,11 +391,21 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
         }
 
-        if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction) &&
-                TaskResult.Code.SUCCESS == result.getCode()) {
-            // preserve refreshing state and immediately start new request
-            mNetworkFragment.startTask(TaskAction.READ_RSS_BY_ID, (String) result.getContent());
-        } else {
+        boolean keepRefreshingState = false;
+
+        if (TaskResult.Code.SUCCESS == result.getCode()) {
+            if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
+                keepRefreshingState = true;
+                // preserve refreshing state and immediately start new request (fetch rss by id)
+                mNetworkFragment.startTask(TaskAction.READ_RSS_BY_ID, (String) result.getContent());
+            } /*else if (TaskAction.READ_RSS_BY_ID.equals(taskAction)) {
+                keepRefreshingState = true;
+                // fetch hourly forecast in addition to
+                mNetworkFragment.startTask(TaskAction.GET_HOURLY_FORECAST, getStoredCityId());
+            }*/
+        }
+
+        if (!keepRefreshingState) {
             isRequestRunning = false;
             mSwipeRefreshLayout.setRefreshing(false);
         }
@@ -406,7 +499,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                loadRss(getStoredRssId());
+//                loadRss(getStoredRssId());
+                fetchForecast(getStoredCityId());
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -426,6 +520,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private String getStoredRssId() {
         return getSharedPreferences().getString(Constants.PARAM_KEY_RSS_ID,
+                getString(R.string.default_rss_id));
+    }
+
+    private String getStoredCityId() {
+        return getSharedPreferences().getString(Constants.PARAMS_KEY_CITY_ID,
                 getString(R.string.default_city_id));
     }
 
@@ -444,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     private MainActivityViewModel convertToViewModel(RssChannel channel) {
-        return convertToViewModel(this, channel, CalendarHelper.supplyUTC());
+        return convertToViewModel(this, channel, CalendarHelper.provideForUTC());
     }
 
     public static MainActivityViewModel convertToViewModel(Context context, RssChannel channel,
@@ -454,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         String hgCol = context.getString(R.string.const_hg_cl);
         String city = "";
         long forecastFromUTC = -1;
-        List<ForecastItem> items = new ArrayList<>(channel.getItems().size());
+        List<DailyForecastItem> items = new ArrayList<>(channel.getItems().size());
         int mod = 0;
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
@@ -513,11 +612,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 }
             }
 
-            ForecastItem forecastItem;
+            DailyForecastItem forecastItem;
 
             String[] forecastParts = details.toString().split("\\n");
             if (forecastParts.length == 5) {
-                forecastItem = new ForecastItem(title, itemDateUTC);
+                forecastItem = new DailyForecastItem(title, itemDateUTC);
 
                 String conditionsDesc = forecastParts[0];
 
@@ -573,7 +672,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
                 forecastItem.setDescription(forecastDescription.toString());
             } else {
-                forecastItem = new ForecastItem(title, itemDateUTC);
+                forecastItem = new DailyForecastItem(title, itemDateUTC);
 
                 String detailsString = details.toString();
 
@@ -594,18 +693,16 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
         MainActivityViewModel model = new MainActivityViewModel();
         model.setActionBarTitle(city);
-        model.setItems(items);
+        model.setDailyItems(items);
         model.setForecastFromUTC(forecastFromUTC);
 
         return model;
     }
 
     private static List<ListViewItemModel> convertToItemModel(List<City> cityList) {
-        List<ListViewItemModel> res = new ArrayList<>(cityList.size());
-        for (City city : cityList) {
-            res.add(new ListViewItemModel(city.getId(), city.getTitle(), city.getPath()));
-        }
-        return res;
+        return Stream.of(cityList)
+                .map((city -> new ListViewItemModel(city.getId(), city.getTitle(), city.getPath())))
+                .collect(Collectors.toList());
     }
 
     private static boolean tryParseDayMonthUTC(String title, Calendar itemDayUTC) {
@@ -617,24 +714,75 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private static List<ForecastListViewItemModel> convert(List<ForecastItem> items) {
-        return convert(items, CalendarHelper.supply(TimeZone.getDefault()));
+    private static List<HourlyListViewForecastModel> convert2(List<HourlyDataWrapper> items) {
+        List<HourlyListViewForecastModel> res = new ArrayList<>(items.size());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        for (HourlyDataWrapper hdw : items) {
+            HourlyListViewForecastModel vm = new HourlyListViewForecastModel();
+            // Time
+            Long dateMillis = hdw.getDateMillis();
+            String time = "";
+            if (dateMillis != -1) {
+                time = sdf.format(new Date(dateMillis));
+            }
+            vm.setTime(time);
+            // Temperature
+            String tempCelsius = hdw.getTempCelsius();
+            if (!"0".equals(tempCelsius) && '-' != tempCelsius.charAt(0)) {
+                tempCelsius = "+" + tempCelsius;
+            }
+            vm.setTemperature(tempCelsius + "°");
+            // Description
+            String desc = hdw.getDescription();
+            vm.setDescription(desc);
+            // Wind info
+            String windSpeed = hdw.getWindSpeedMeters();
+            StringBuilder windInfo = new StringBuilder();
+            if (!TextUtils.isEmpty(windSpeed)) {
+                if(!"0".equals(windSpeed.trim())) {
+                    windInfo.append("Ветер ").append(hdw.getWindDirName()).append(", ").
+                            append(hdw.getWindSpeedMeters()).append(" м/с");
+                } else {
+                    windInfo.append("Штиль");
+                }
+            }
+            vm.setWind(windInfo.toString());
+            // Humidity
+            vm.setHumidity("Влажность " + hdw.getHumidityPercent() + "%");
+            // Precipitation
+            String precipLevel = hdw.getPrecipitationMillimeters();
+            if (!TextUtils.isEmpty(precipLevel) && !"0".equals(precipLevel.trim())) {
+                String prob = hdw.getPrecipitationProbability();
+
+                vm.setPrecipLevel(precipLevel + " мм");
+                vm.setPrecipProbability(prob + "%");
+            }
+            res.add(vm);
+        }
+        return res;
     }
 
-    public static List<ForecastListViewItemModel> convert(List<ForecastItem> items, Calendar calToday) {
-        List<ForecastListViewItemModel> res = new ArrayList<>(items.size());
+    private static List<DailyForecastListViewItemModel> convert(List<DailyForecastItem> items) {
+        return convert(items, CalendarHelper.provideFor(TimeZone.getDefault()));
+    }
+
+    public static List<DailyForecastListViewItemModel> convert(List<DailyForecastItem> items,
+                                                               Calendar calToday) {
+        List<DailyForecastListViewItemModel> res = new ArrayList<>(items.size());
 
         // use utc calendar for items since forecast is already tied to location
-        Calendar calItem = CalendarHelper.supply(TimeZone.getTimeZone("UTC"));
+        Calendar calItem = CalendarHelper.provideFor(TimeZone.getTimeZone("UTC"));
 
         int todayIdx = -1, idx = 0;
-        for (ForecastItem item : items) {
+        for (DailyForecastItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
             if (itemDateUTC != -1) {
                 calItem.setTimeInMillis(itemDateUTC);
                 String prefix;
-                if (CalendarHelper.ifToday(calToday, calItem)) {
+                if (CalendarHelper.ifSameDay(calToday, calItem)) {
                     prefix = Constants.RU_TODAY;
                     todayIdx = idx;
                 } else if (CalendarHelper.ifTomorrow(calToday, calItem)) {
@@ -649,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             String desc = item.getDescription();
 
-            ForecastListViewItemModel vm = new ForecastListViewItemModel(title, desc);
+            DailyForecastListViewItemModel vm = new DailyForecastListViewItemModel(title, desc);
             vm.setTempDaily(item.getTempDaily());
             vm.setTempNightly(item.getTempNightly());
             vm.setWind(item.getWind());

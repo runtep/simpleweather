@@ -2,7 +2,7 @@ package org.roko.smplweather.model;
 
 import java.io.Serializable;
 
-public class ListViewItemModel implements Serializable {
+public class ListViewItemModel implements Serializable, HourlyListViewItemModel {
     protected String _id;
     protected String title;
     protected String description;

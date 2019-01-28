@@ -5,7 +5,8 @@ import java.util.List;
 
 public class MainActivityViewModel implements Serializable {
     private String actionBarTitle;
-    private List<ForecastItem> items;
+    private List<HourlyListViewItemModel> hourlyDataItems;
+    private List<DailyForecastItem> dailyItems;
     private long forecastFromUTC = -1;
 
     public String getActionBarTitle() {
@@ -16,12 +17,20 @@ public class MainActivityViewModel implements Serializable {
         this.actionBarTitle = actionBarTitle;
     }
 
-    public List<ForecastItem> getItems() {
-        return items;
+    public List<DailyForecastItem> getDailyItems() {
+        return dailyItems;
     }
 
-    public void setItems(List<ForecastItem> items) {
-        this.items = items;
+    public void setDailyItems(List<DailyForecastItem> dailyItems) {
+        this.dailyItems = dailyItems;
+    }
+
+    public List<HourlyListViewItemModel> getHourlyDataItems() {
+        return hourlyDataItems;
+    }
+
+    public void setHourlyDataItems(List<HourlyListViewItemModel> hourlyDataItems) {
+        this.hourlyDataItems = hourlyDataItems;
     }
 
     public long getForecastFromUTC() {

@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="6dp"
         android:textSize="16sp"
+        android:textStyle="bold"
         tools:text="Item title"/>
 
     <TextView

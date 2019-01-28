@@ -8,11 +8,13 @@
     <string name="toast_no_content">No content found</string>
     <string name="toast_network_issue">Can\'t establish network connection</string>
     <string name="toast_update_error">Update error</string>
+    <string name="toast_timeout_expired">Timeout expired</string>
 
     <string name="no_data">No data</string>
     <string name="footer_actuality">Forecast provided</string>
 
     <string name="url_main" translatable="false">https://meteoinfo.ru/</string>
-    <string name="default_city_id" translatable="false">28900</string>
+    <string name="default_rss_id" translatable="false">28900</string>
+    <string name="default_city_id" translatable="false">1834</string>
     <string name="const_hg_cl" translatable="false">рт.ст.</string>
 </resources>

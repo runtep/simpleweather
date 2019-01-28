@@ -63,9 +63,14 @@ public class NetworkFragment extends Fragment {
     }
 
     public void startTask(String actionString, String queryString) {
+        startTask(actionString, queryString, Bundle.EMPTY);
+    }
+
+    public void startTask(String actionString, String queryString, Bundle bundle) {
         interruptTask();
         task = new GenericTask(callback);
         task.setSessionStorage(sessionStorage);
+        task.setBundle(bundle);
         task.execute(urlString, actionString, queryString);
     }
 

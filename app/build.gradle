@@ -10,6 +10,10 @@ android {
         additionalParameters "--no-version-vectors"
     }
     compileSdkVersion 28
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "org.roko.smplweather"
@@ -46,4 +50,6 @@ dependencies {
         exclude group: 'stax', module: 'stax-api'
         exclude group: 'stax', module: 'stax'
     }
+    compile 'com.squareup.retrofit2:converter-scalars:2.1.0'
+    implementation 'com.annimon:stream:1.2.1'
 }

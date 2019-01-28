@@ -8,8 +8,8 @@ import org.mockito.Mockito;
 import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
 import org.roko.smplweather.activity.MainActivity;
-import org.roko.smplweather.model.ForecastItem;
-import org.roko.smplweather.model.ForecastListViewItemModel;
+import org.roko.smplweather.model.DailyForecastItem;
+import org.roko.smplweather.model.DailyForecastListViewItemModel;
 import org.roko.smplweather.model.ListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.xml.RssChannel;
@@ -52,62 +52,62 @@ public class AppUnitTest {
 
     @Test
     public void simpleTest() {
-        Calendar supplier = CalendarHelper.supplyUTC();
+        Calendar supplier = CalendarHelper.provideForUTC();
         setDate(supplier, 2018, Calendar.OCTOBER, 1);
 
         RssChannel channel = provide(supplier, 3);
 
-        Calendar startPoint = CalendarHelper.supplyUTC();
+        Calendar startPoint = CalendarHelper.provideForUTC();
         setDate(startPoint, 2018, Calendar.OCTOBER, 2);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
         Assert.assertTrue("Failed to parse 'last update'", model.getForecastFromUTC() != -1);
 
-        checkDateOrder(model.getItems());
+        checkDateOrder(model.getDailyItems());
     }
 
     @Test
     public void complexTest() {
         System.out.println("Test joint between two years");
 
-        Calendar supplier = CalendarHelper.supplyUTC();
+        Calendar supplier = CalendarHelper.provideForUTC();
         setDate(supplier, 2018, Calendar.DECEMBER, 29);
 
         RssChannel channel = provide(supplier, 5);
 
-        Calendar startPoint = CalendarHelper.supplyUTC();
+        Calendar startPoint = CalendarHelper.provideForUTC();
 
         System.out.println("Current date is before new year");
         setDate(startPoint, 2018, Calendar.DECEMBER, 29);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
-        checkDateOrder(model.getItems());
+        checkDateOrder(model.getDailyItems());
 
         System.out.println("Current date is after new year");
         setDate(startPoint, 2019, Calendar.JANUARY, 2);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
-        checkDateOrder(model.getItems());
+        checkDateOrder(model.getDailyItems());
     }
 
     @Test
     public void converterTest() {
-        Calendar supplier = CalendarHelper.supplyUTC();
+        Calendar supplier = CalendarHelper.provideForUTC();
         setDate(supplier, 2018, Calendar.DECEMBER, 30);
 
         RssChannel channel = provide(supplier, 3);
 
-        Calendar startPoint = CalendarHelper.supplyUTC();
+        Calendar startPoint = CalendarHelper.provideForUTC();
         setDate(startPoint, 2018, Calendar.DECEMBER, 31);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
 
         setDate(startPoint, 2018, Calendar.DECEMBER, 31); // reset
-        List<ForecastListViewItemModel> lvItems = MainActivity.convert(model.getItems(), startPoint);
+        List<DailyForecastListViewItemModel> lvItems = MainActivity.convert(model.getDailyItems(), startPoint);
 
         for (ListViewItemModel lvItem : lvItems) {
             System.out.println(lvItem.getTitle());
@@ -135,9 +135,9 @@ public class AppUnitTest {
                 supplier.getDisplayName(Calendar.MONTH, Calendar.LONG, LOCALE_RU);
     }
 
-    private static void checkDateOrder(List<ForecastItem> items) {
+    private static void checkDateOrder(List<DailyForecastItem> items) {
         long prevMillis = -1;
-        for (ForecastItem fItem : items) {
+        for (DailyForecastItem fItem : items) {
             long itemMillis = fItem.getDateTimeUTC();
             Assert.assertTrue(itemMillis != -1);
 

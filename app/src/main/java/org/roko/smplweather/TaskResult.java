@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 public class TaskResult {
     public interface Code {
+        int TIMEOUT_EXPIRED = -4;
         int NULL_CONTENT = -3;
         int NETWORK_ISSUE = -2;
         int ERROR = -1;

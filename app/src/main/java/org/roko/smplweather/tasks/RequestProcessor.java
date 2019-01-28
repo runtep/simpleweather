@@ -1,10 +1,12 @@
 package org.roko.smplweather.tasks;
 
 import org.roko.smplweather.model.City;
+import org.roko.smplweather.model.HourlyForecast;
 import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssResponse;
 import org.roko.smplweather.model.json.Result;
 import org.roko.smplweather.model.json.SearchCityResponse;
+import org.roko.smplweather.utils.DailyForecastParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ final class RequestProcessor {
     private static final String PATTERN_EXTRACT_RSS_ID =
             ".?(<a +href=[^<]+</a>[^<]+){0,1}(<a +href=.?\"[^=]+=(\\d+).?\">RSS</a>).?";
 
-    public ResponseWrapper processReadRssRequest(GenericTask.ApiService service, String queryString) {
+    ResponseWrapper processReadRssRequest(GenericTask.ApiService service, String queryString) {
         ResponseWrapper requestResult;
         Call<RssResponse> serviceCall = service.getRssByCityId(queryString);
         try {
@@ -43,39 +45,34 @@ final class RequestProcessor {
         return requestResult;
     }
 
-    public boolean checkCookies(String url, Map<String, Object> sessionStorage) {
+    void checkCookies(String url, Map<String, Object> sessionStorage) throws IOException {
         if (!sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
             OkHttpClient okHttpClient = new OkHttpClient();
             Request okRequest = new Request.Builder()
                     .url(url)
                     .build();
             okhttp3.Call okCall = okHttpClient.newCall(okRequest);
-            try {
-                okhttp3.Response okResponse = okCall.execute();
-                if (okResponse.isSuccessful()) {
-                    List<String> cookies = okResponse.headers(HEADER_KEY_SET_COOKIE);
-                    if (!cookies.isEmpty()) {
-                        StringBuilder cookieValue = new StringBuilder();
-                        String div = "";
-                        for (String val : cookies) {
-                            int semicolon = val.indexOf(';');
-                            if (semicolon != -1) {
-                                val = val.substring(0, semicolon);
-                            }
-                            cookieValue.append(div).append(val);
-                            div = ";";
+            okhttp3.Response okResponse = okCall.execute();
+            if (okResponse.isSuccessful()) {
+                List<String> cookies = okResponse.headers(HEADER_KEY_SET_COOKIE);
+                if (!cookies.isEmpty()) {
+                    StringBuilder cookieValue = new StringBuilder();
+                    String div = "";
+                    for (String val : cookies) {
+                        int semicolon = val.indexOf(';');
+                        if (semicolon != -1) {
+                            val = val.substring(0, semicolon);
                         }
-                        sessionStorage.put(STORAGE_KEY_COOKIES, cookieValue.toString());
+                        cookieValue.append(div).append(val);
+                        div = ";";
                     }
+                    sessionStorage.put(STORAGE_KEY_COOKIES, cookieValue.toString());
                 }
-            } catch (IOException e) {
-                return false;
             }
         }
-        return true;
     }
 
-    public ResponseWrapper processSearchCityRequest(GenericTask.ApiService service, String queryString) {
+    ResponseWrapper processSearchCityRequest(GenericTask.ApiService service, String queryString) {
         ResponseWrapper requestResult;
         Call<SearchCityResponse> serviceCall = service.searchCityByName(queryString);
         try {
@@ -93,7 +90,7 @@ final class RequestProcessor {
         return requestResult;
     }
 
-    public ResponseWrapper processGetRssIdByCityId(GenericTask.ApiService service, String query,
+    ResponseWrapper processGetRssIdByCityId(GenericTask.ApiService service, String query,
                                                    Map<String, Object> sessionStorage) {
         String cookieHeader = "";
         if (sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
@@ -117,6 +114,29 @@ final class RequestProcessor {
                 }
             }
             responseWrapper = new ResponseWrapper(content);
+        } catch (Exception e) {
+            responseWrapper = new ResponseWrapper(e);
+        }
+        return responseWrapper;
+    }
+
+    ResponseWrapper processGetHourlyForecastByCityId(GenericTask.ApiService service,
+                                                            String query,
+                                                            Map<String, Object> sessionStorage) {
+        String cookieHeader = "";
+        if (sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
+            cookieHeader = (String) sessionStorage.get(STORAGE_KEY_COOKIES);
+        }
+        ResponseWrapper responseWrapper;
+        Call<String> serviceCall = service.getHourlyForecastJsString(query, cookieHeader);
+        try {
+            Response<String> response = serviceCall.execute();
+            HourlyForecast result = null;
+            if (response.isSuccessful()) {
+                String payload = response.body();
+                result = DailyForecastParser.parse(payload);
+            }
+            responseWrapper = new ResponseWrapper(result);
         } catch (Exception e) {
             responseWrapper = new ResponseWrapper(e);
         }
