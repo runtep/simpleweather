@@ -1,9 +1,9 @@
 package org.roko.smplweather.model;
 
-public class DailyForecastListViewItemModel extends ListViewItemModel {
+public class DailyListViewItemModelImpl extends BasicListViewItemModelImpl implements DailyListViewItemModel {
     private String tempDaily, tempNightly, wind, pressure;
 
-    public DailyForecastListViewItemModel(String title, String description) {
+    public DailyListViewItemModelImpl(String title, String description) {
         super(title, description);
     }
 

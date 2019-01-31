@@ -1,6 +1,6 @@
 package org.roko.smplweather.model;
 
-public class HourlyListViewForecastModel implements HourlyListViewItemModel {
+public class HourlyListViewItemContent implements HourlyListViewItemModel {
     private String time,
             temperature,
             description,
@@ -9,7 +9,7 @@ public class HourlyListViewForecastModel implements HourlyListViewItemModel {
             precipLevel,
             precipProbability;
 
-    public HourlyListViewForecastModel() {}
+    public HourlyListViewItemContent() {}
 
     public String getTime() {
         return time;

@@ -1,20 +1,14 @@
 package org.roko.smplweather.adapter;
 
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
-import org.roko.smplweather.model.ListViewItemModel;
+import org.roko.smplweather.model.BasicListViewItemModel;
 
-import java.util.Collections;
-import java.util.List;
-
-public class BasicListViewAdapter<T extends ListViewItemModel> extends AbstractListViewAdapter<T> {
+public class BasicListViewAdapter<T extends BasicListViewItemModel> extends AbstractListViewAdapter<T> {
     protected final int layoutId;
 
     public BasicListViewAdapter(Context ctx) {

@@ -28,7 +28,12 @@ public class DailyForecastParser {
 
     public static HourlyForecast parse(String payload) {
 
-        // list of structures [[date: "today_16:00", value: 1], [date: "today_18:00", value: 2], ...]
+        // list of structures
+        // [
+        //   [date: "today_16:00", value: 1],
+        //   [date: "today_18:00", value: 2],
+        //   ...
+        // ]
         List<Map<String, String>> temperatureValues = parseArray(payload, ARR_TEMPERATURE, TEMPERATURE_CELSIUS);
         List<Map<String, String>> windDirNames = parseArray(payload, ARR_WIND_DIR_NAME, WIND_DIR_NAME);
         List<Map<String, String>> windSpeedValues = parseArray(payload, ARR_WIND_SPEED, WIND_SPEED_METERS);
@@ -37,8 +42,12 @@ public class DailyForecastParser {
         List<Map<String, String>> precipProbabilities = parseArray(payload, ARR_PRECIP_VER, PRECIP_PROBABILITY_PERCENT);
         List<Map<String, String>> descriptions = parseArray(payload, ARR_PHENOMENON_NAME, FORECAST_DESCR);
 
-        // map transformation
-        // ["today_16:00"): [value: 1], "today_18:00": [value: 2]]
+        // map transformation - date value is extracted and used as a key
+        // [
+        //   "today_16:00": [date: "today_16:00", value: 1],
+        //   "today_18:00": [date: "today_18:00", value: 2],
+        //   ...
+        // ]
         Map<Long, Map<String, String>> target = Stream.of(temperatureValues).collect(
             Collectors.toMap(
                 (Map<String, String> e) -> Long.valueOf(e.get(DATE_MILLIS)),
@@ -60,8 +69,12 @@ public class DailyForecastParser {
             }
         });
 
-        // provideFor each value entry with extra data
-        // ["today_16:00": [value: 1, anotherValue: 9], "today_18:00": [value: 2, anotherValue: 10]]
+        // supply each value entry with extra data
+        // [
+        //   "today_16:00": [date: "today_16:00", value: 1, anotherValue: 9, ...],
+        //   "today_18:00": [date: "today_18:00", value: 2, anotherValue: 10, ...],
+        //   ...
+        // ]
         supplyMap(target, windDirNames, WIND_DIR_NAME);
         supplyMap(target, windSpeedValues, WIND_SPEED_METERS);
         supplyMap(target, humidityValues, HUMIDITY_PERCENT);
@@ -78,7 +91,14 @@ public class DailyForecastParser {
             hourlyData.put(entry.getKey(), hdw);
         });
         // regroup by days
-        // ["today": [[value: 1, anotherValue: 9], [value: 2, anotherValue: 10]], "tomorrow": ... ]
+        // [
+        //   "today": [
+        //     [date: "today_16:00", value: 1, anotherValue: 9],
+        //     [date: "today_18:00", value: 2, anotherValue: 10],
+        //     ...
+        //   ],
+        //   "tomorrow": [ ... ]
+        // ]
         HourlyForecast hf = new HourlyForecast(groupByDays(hourlyData));
 
         return hf;

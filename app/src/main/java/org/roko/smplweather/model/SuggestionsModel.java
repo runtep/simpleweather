@@ -6,18 +6,18 @@ import java.util.Collections;
 import java.util.List;
 
 public class SuggestionsModel implements Serializable {
-    private List<ListViewItemModel> suggestions;
+    private List<BasicListViewItemModelImpl> suggestions;
     private String query;
 
-    public SuggestionsModel(List<ListViewItemModel> suggestions) {
+    public SuggestionsModel(List<BasicListViewItemModelImpl> suggestions) {
         setSuggestions(suggestions);
     }
 
-    public List<ListViewItemModel> getSuggestions() {
+    public List<BasicListViewItemModelImpl> getSuggestions() {
         return new ArrayList<>(suggestions);
     }
 
-    public void setSuggestions(List<ListViewItemModel> suggestions) {
+    public void setSuggestions(List<BasicListViewItemModelImpl> suggestions) {
         this.suggestions = new ArrayList<>(suggestions);
     }
 

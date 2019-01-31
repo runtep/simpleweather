@@ -1,7 +1,5 @@
 package org.roko.smplweather.model;
 
-import com.annimon.stream.Stream;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

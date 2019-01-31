@@ -10,6 +10,9 @@
     <string name="toast_update_error">Update error</string>
     <string name="toast_timeout_expired">Timeout expired</string>
 
+    <string name="tab_daily">Daily</string>
+    <string name="tab_hourly">Hourly</string>
+
     <string name="no_data">No data</string>
     <string name="footer_actuality">Forecast provided</string>
 

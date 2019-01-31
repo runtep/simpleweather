@@ -52,21 +52,29 @@ final class RequestProcessor {
                     .url(url)
                     .build();
             okhttp3.Call okCall = okHttpClient.newCall(okRequest);
-            okhttp3.Response okResponse = okCall.execute();
-            if (okResponse.isSuccessful()) {
-                List<String> cookies = okResponse.headers(HEADER_KEY_SET_COOKIE);
-                if (!cookies.isEmpty()) {
-                    StringBuilder cookieValue = new StringBuilder();
-                    String div = "";
-                    for (String val : cookies) {
-                        int semicolon = val.indexOf(';');
-                        if (semicolon != -1) {
-                            val = val.substring(0, semicolon);
+            okhttp3.ResponseBody responseBody = null;
+            try {
+                okhttp3.Response okResponse = okCall.execute();
+                if (okResponse.isSuccessful()) {
+                    responseBody = okResponse.body();
+                    List<String> cookies = okResponse.headers(HEADER_KEY_SET_COOKIE);
+                    if (!cookies.isEmpty()) {
+                        StringBuilder cookieValue = new StringBuilder();
+                        String div = "";
+                        for (String val : cookies) {
+                            int semicolon = val.indexOf(';');
+                            if (semicolon != -1) {
+                                val = val.substring(0, semicolon);
+                            }
+                            cookieValue.append(div).append(val);
+                            div = ";";
                         }
-                        cookieValue.append(div).append(val);
-                        div = ";";
+                        sessionStorage.put(STORAGE_KEY_COOKIES, cookieValue.toString());
                     }
-                    sessionStorage.put(STORAGE_KEY_COOKIES, cookieValue.toString());
+                }
+            } finally {
+                if (responseBody != null) {
+                    responseBody.close();
                 }
             }
         }

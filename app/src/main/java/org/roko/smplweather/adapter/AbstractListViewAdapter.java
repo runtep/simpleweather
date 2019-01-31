@@ -6,13 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import org.roko.smplweather.R;
+import org.roko.smplweather.model.ListViewItemModel;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-abstract class AbstractListViewAdapter<T> extends BaseAdapter {
+abstract class AbstractListViewAdapter<T extends ListViewItemModel> extends BaseAdapter {
     protected final LayoutInflater mLayoutInflater;
     protected List<T> items = new ArrayList<>();
 
@@ -22,6 +21,10 @@ abstract class AbstractListViewAdapter<T> extends BaseAdapter {
 
     public void setItems(List<T> items) {
         this.items = items;
+    }
+
+    public List<T> getItems() {
+        return this.items;
     }
 
     @Override

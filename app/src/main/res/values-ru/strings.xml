@@ -10,4 +10,7 @@
     <string name="no_data">Нет данных</string>
     <string name="search_title">Найти город</string>
     <string name="search_hint">Город</string>
+    <string name="toast_timeout_expired">Время ожидания истекло</string>
+    <string name="tab_daily">По дням</string>
+    <string name="tab_hourly">По часам</string>
 </resources>

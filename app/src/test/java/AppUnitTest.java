@@ -9,8 +9,7 @@ import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
 import org.roko.smplweather.activity.MainActivity;
 import org.roko.smplweather.model.DailyForecastItem;
-import org.roko.smplweather.model.DailyForecastListViewItemModel;
-import org.roko.smplweather.model.ListViewItemModel;
+import org.roko.smplweather.model.DailyListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssItem;
@@ -62,7 +61,7 @@ public class AppUnitTest {
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
-        Assert.assertTrue("Failed to parse 'last update'", model.getForecastFromUTC() != -1);
+        Assert.assertTrue("Failed to parse 'last update'", model.getRssProvidedUTC() != -1);
 
         checkDateOrder(model.getDailyItems());
     }
@@ -107,9 +106,9 @@ public class AppUnitTest {
         MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
 
         setDate(startPoint, 2018, Calendar.DECEMBER, 31); // reset
-        List<DailyForecastListViewItemModel> lvItems = MainActivity.convert(model.getDailyItems(), startPoint);
+        List<DailyListViewItemModel> lvItems = MainActivity.convert(model.getDailyItems(), startPoint);
 
-        for (ListViewItemModel lvItem : lvItems) {
+        for (DailyListViewItemModel lvItem : lvItems) {
             System.out.println(lvItem.getTitle());
         }
 

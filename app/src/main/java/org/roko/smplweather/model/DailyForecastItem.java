@@ -1,13 +1,11 @@
 package org.roko.smplweather.model;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class DailyForecastItem implements Serializable {
     private String title, description; // mandatory fields
     private long dateTimeUTC = -1;
     private String tempDaily, tempNightly, wind, pressure; // extra fields
-    private List<HourlyDataWrapper> hourlyData;
 
     public DailyForecastItem(String title, long dateTimeUTC) {
         this.title = title;
@@ -64,13 +62,5 @@ public class DailyForecastItem implements Serializable {
 
     public void setPressure(String pressure) {
         this.pressure = pressure;
-    }
-
-    public List<HourlyDataWrapper> getHourlyData() {
-        return hourlyData;
-    }
-
-    public void setHourlyData(List<HourlyDataWrapper> hourlyData) {
-        this.hourlyData = hourlyData;
     }
 }

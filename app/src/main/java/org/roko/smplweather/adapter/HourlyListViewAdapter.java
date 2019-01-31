@@ -7,10 +7,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.roko.smplweather.R;
-import org.roko.smplweather.model.HourlyListViewForecastModel;
+import org.roko.smplweather.model.HourlyListViewItemContent;
 import org.roko.smplweather.model.HourlyListViewItemModel;
-import org.roko.smplweather.model.HourlyListViewDividerModel;
-import org.roko.smplweather.model.ListViewItemModel;
+import org.roko.smplweather.model.HourlyListViewItemDivider;
+import org.roko.smplweather.model.BasicListViewItemModelImpl;
 
 public class HourlyListViewAdapter extends AbstractListViewAdapter<HourlyListViewItemModel> {
 
@@ -27,16 +27,16 @@ public class HourlyListViewAdapter extends AbstractListViewAdapter<HourlyListVie
     public View getView(int position, View convertView, ViewGroup parent) {
         HourlyListViewItemModel generic = getItem(position);
 
-        if (generic instanceof HourlyListViewDividerModel) {
+        if (generic instanceof HourlyListViewItemDivider) {
             convertView = mLayoutInflater.inflate(R.layout.list_divider, parent, false);
 
             TextView tv = convertView.findViewById(R.id.listDividerText);
-            HourlyListViewDividerModel item = (HourlyListViewDividerModel) generic;
+            HourlyListViewItemDivider item = (HourlyListViewItemDivider) generic;
             tv.setText(item.getTitle());
-        } else if (generic instanceof HourlyListViewForecastModel) {
+        } else if (generic instanceof HourlyListViewItemContent) {
             convertView = mLayoutInflater.inflate(R.layout.hourly_item, parent, false);
 
-            HourlyListViewForecastModel m = (HourlyListViewForecastModel) generic;
+            HourlyListViewItemContent m = (HourlyListViewItemContent) generic;
 
             TextView tv = convertView.findViewById(R.id.hiTime);
             tv.setText(m.getTime());
@@ -52,10 +52,10 @@ public class HourlyListViewAdapter extends AbstractListViewAdapter<HourlyListVie
             tv.setText(m.getPrecipLevel());
             tv = convertView.findViewById(R.id.hiPrecipProbability);
             tv.setText(m.getPrecipProbability());
-        } else if (generic instanceof ListViewItemModel) {
+        } else if (generic instanceof BasicListViewItemModelImpl) {
             convertView = mLayoutInflater.inflate(R.layout.hourly_item, parent, false);
 
-            ListViewItemModel item = (ListViewItemModel) generic;
+            BasicListViewItemModelImpl item = (BasicListViewItemModelImpl) generic;
 
             TextView tvTitle = convertView.findViewById(R.id.itmTitle);
             tvTitle.setText(item.getTitle());

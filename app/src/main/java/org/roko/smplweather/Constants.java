@@ -14,6 +14,11 @@ public final class Constants {
 
     public static final String BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL = "mainActivityViewModel";
     public static final String BUNDLE_KEY_SUGGESTIONS_MODEL = "suggestionsModel";
+    public static final String BUNDLE_KEY_FRAGMENT_STATE = "fragmentState";
+
+    public static final String BUNDLE_KEY_NEXT_TASK_ACTION = "nextTaskAction";
+    public static final String BUNDLE_KEY_CITY_ID = "cityId";
+    public static final String BUNDLE_KEY_TRIGGER = "trigger";
 
     public static final String RU_TODAY = "Сегодня";
     public static final String RU_TOMORROW = "Завтра";

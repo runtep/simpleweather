@@ -5,9 +5,9 @@ import java.util.List;
 
 public class MainActivityViewModel implements Serializable {
     private String actionBarTitle;
-    private List<HourlyListViewItemModel> hourlyDataItems;
+    private List<HourlyListViewItemModel> hourlyViewModel;
     private List<DailyForecastItem> dailyItems;
-    private long forecastFromUTC = -1;
+    private long rssProvidedUTC = -1;
 
     public String getActionBarTitle() {
         return actionBarTitle;
@@ -25,19 +25,19 @@ public class MainActivityViewModel implements Serializable {
         this.dailyItems = dailyItems;
     }
 
-    public List<HourlyListViewItemModel> getHourlyDataItems() {
-        return hourlyDataItems;
+    public List<HourlyListViewItemModel> getHourlyViewModel() {
+        return hourlyViewModel;
     }
 
-    public void setHourlyDataItems(List<HourlyListViewItemModel> hourlyDataItems) {
-        this.hourlyDataItems = hourlyDataItems;
+    public void setHourlyViewModel(List<HourlyListViewItemModel> hourlyItems) {
+        this.hourlyViewModel = hourlyItems;
     }
 
-    public long getForecastFromUTC() {
-        return forecastFromUTC;
+    public long getRssProvidedUTC() {
+        return rssProvidedUTC;
     }
 
-    public void setForecastFromUTC(long forecastFromUTC) {
-        this.forecastFromUTC = forecastFromUTC;
+    public void setRssProvidedUTC(long rssProvidedUTC) {
+        this.rssProvidedUTC = rssProvidedUTC;
     }
 }

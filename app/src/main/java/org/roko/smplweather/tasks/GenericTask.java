@@ -80,7 +80,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder().baseUrl(url);
         if (TaskAction.GET_HOURLY_FORECAST.equals(action)) {
             retrofitBuilder.addConverterFactory(ScalarsConverterFactory.create());
-        } else if (TaskAction.READ_RSS_BY_ID.equals(action)) {
+        } else if (TaskAction.GET_RSS_BODY_BY_ID.equals(action)) {
             retrofitBuilder.addConverterFactory(SimpleXmlConverterFactory.create());
         } else {
             retrofitBuilder.addConverterFactory(JacksonConverterFactory.create());
@@ -89,22 +89,22 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
         ApiService service = retrofit.create(ApiService.class);
         RequestProcessor processor = new RequestProcessor();
         switch (action) {
-            case TaskAction.READ_RSS_BY_ID: {
+            case TaskAction.GET_RSS_BODY_BY_ID: {
                 responseWrapper = processor.processReadRssRequest(service, query);
             }
             break;
             case TaskAction.SEARCH_CITY_BY_NAME: {
-                try {
-                    // cookies are necessary to fetch rss feed id by cityId
-                    processor.checkCookies(url, sessionStorage);
-                    responseWrapper = processor.processSearchCityRequest(service, query);
-                } catch (IOException e) {
-                    responseWrapper = new ResponseWrapper(e);
-                }
+                responseWrapper = processor.processSearchCityRequest(service, query);
             }
             break;
             case TaskAction.GET_RSS_ID_BY_CITY_ID: {
-                responseWrapper = processor.processGetRssIdByCityId(service, query, sessionStorage);
+                try {
+                    // cookies are necessary to fetch rss feed id by cityId
+                    processor.checkCookies(url, sessionStorage);
+                    responseWrapper = processor.processGetRssIdByCityId(service, query, sessionStorage);
+                } catch (IOException e) {
+                    responseWrapper = new ResponseWrapper(e);
+                }
             }
             break;
             case TaskAction.GET_HOURLY_FORECAST: {
