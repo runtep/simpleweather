@@ -3,9 +3,6 @@ package org.roko.smplweather.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 
 import org.roko.smplweather.tasks.GenericTask;
 import org.roko.smplweather.TaskResult;
@@ -14,6 +11,10 @@ import org.roko.smplweather.RequestCallback;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 public class NetworkFragment extends Fragment {
 

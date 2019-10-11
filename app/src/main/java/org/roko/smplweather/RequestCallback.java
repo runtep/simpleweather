@@ -2,7 +2,8 @@ package org.roko.smplweather;
 
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 public interface RequestCallback<T> {
 

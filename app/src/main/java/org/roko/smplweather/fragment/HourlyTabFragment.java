@@ -1,9 +1,6 @@
 package org.roko.smplweather.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +12,10 @@ import org.roko.smplweather.model.HourlyListViewItemModel;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import static org.roko.smplweather.Constants.BUNDLE_KEY_FRAGMENT_STATE;
 
 public class HourlyTabFragment extends Fragment implements TabFragment<HourlyListViewItemModel> {
@@ -23,7 +24,8 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab_content, container, false);
 
         mContentHolder = view.findViewById(R.id.contentHolder);
@@ -35,7 +37,8 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(BUNDLE_KEY_FRAGMENT_STATE, new FragmentState<>(mForecastAdapter.getItems()));
+        outState.putSerializable(BUNDLE_KEY_FRAGMENT_STATE,
+                new FragmentState<>(mForecastAdapter.getItems()));
     }
 
     @Override
@@ -43,7 +46,8 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FRAGMENT_STATE)){
             FragmentState<HourlyListViewItemModel> state =
-                    (FragmentState<HourlyListViewItemModel>) savedInstanceState.getSerializable(BUNDLE_KEY_FRAGMENT_STATE);
+                    (FragmentState<HourlyListViewItemModel>) savedInstanceState
+                            .getSerializable(BUNDLE_KEY_FRAGMENT_STATE);
             updateContent(state.items);
         }
     }

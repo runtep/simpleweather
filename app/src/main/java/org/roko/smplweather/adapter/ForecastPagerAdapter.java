@@ -1,11 +1,6 @@
 package org.roko.smplweather.adapter;
 
 import android.content.res.Resources;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.util.SparseArray;
 import android.view.ViewGroup;
 
@@ -13,6 +8,12 @@ import org.roko.smplweather.R;
 import org.roko.smplweather.fragment.DailyTabFragment;
 import org.roko.smplweather.fragment.HourlyTabFragment;
 import org.roko.smplweather.fragment.TabFragment;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 
 public class ForecastPagerAdapter extends FragmentPagerAdapter {
 
