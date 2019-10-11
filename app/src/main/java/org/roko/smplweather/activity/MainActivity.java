@@ -615,7 +615,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                             calItemUTC.get(Calendar.DAY_OF_MONTH) == 31) {
                         mod = 1; // increase year for each next parsed items
                     }
-
                 }
             } else {
                 title = rssTitle;
@@ -734,7 +733,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private static List<BasicListViewItemModelImpl> convertToItemModel(List<City> cityList) {
         return Stream.of(cityList)
-                .map((city -> new BasicListViewItemModelImpl(city.getId(), city.getTitle(), city.getPath())))
+                .map(city -> new BasicListViewItemModelImpl(city.getId(), city.getTitle(), city.getPath()))
                 .collect(Collectors.toList());
     }
 

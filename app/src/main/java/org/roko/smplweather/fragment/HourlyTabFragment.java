@@ -4,23 +4,24 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import org.roko.smplweather.R;
-import org.roko.smplweather.adapter.HourlyListViewAdapter;
+import org.roko.smplweather.adapter.recycler.HourlyForecastRecyclerViewAdapter;
 import org.roko.smplweather.model.HourlyListViewItemModel;
 
+import java.io.Serializable;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import static org.roko.smplweather.Constants.BUNDLE_KEY_FRAGMENT_STATE;
 
 public class HourlyTabFragment extends Fragment implements TabFragment<HourlyListViewItemModel> {
-    private HourlyListViewAdapter mForecastAdapter;
-    private LinearLayout mContentHolder;
+    private HourlyForecastRecyclerViewAdapter mForecastAdapter;
+    private RecyclerView mContentHolder;
 
     @Nullable
     @Override
@@ -29,7 +30,8 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
         View view = inflater.inflate(R.layout.tab_content, container, false);
 
         mContentHolder = view.findViewById(R.id.contentHolder);
-        mForecastAdapter = new HourlyListViewAdapter(getContext());
+        mForecastAdapter = new HourlyForecastRecyclerViewAdapter();
+        mContentHolder.setAdapter(mForecastAdapter);
 
         return view;
     }
@@ -45,20 +47,17 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FRAGMENT_STATE)){
-            FragmentState<HourlyListViewItemModel> state =
-                    (FragmentState<HourlyListViewItemModel>) savedInstanceState
-                            .getSerializable(BUNDLE_KEY_FRAGMENT_STATE);
-            updateContent(state.items);
+            Serializable state = savedInstanceState.getSerializable(BUNDLE_KEY_FRAGMENT_STATE);
+            if (state != null && FragmentState.class == state.getClass()) {
+                updateContent(((FragmentState) state).items);
+            }
         }
     }
 
     public void updateContent(List<HourlyListViewItemModel> items) {
         if (mForecastAdapter != null && mContentHolder != null) {
             mForecastAdapter.setItems(items);
-            mContentHolder.removeAllViews();
-            for (int i = 0; i < items.size(); i++) {
-                mContentHolder.addView(mForecastAdapter.getView(i, null, mContentHolder), i);
-            }
+            mForecastAdapter.notifyDataSetChanged();
         }
     }
 }

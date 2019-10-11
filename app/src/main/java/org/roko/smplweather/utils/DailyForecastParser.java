@@ -1,6 +1,7 @@
 package org.roko.smplweather.utils;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
@@ -82,8 +83,6 @@ public class DailyForecastParser {
         supplyMap(target, precipProbabilities, PRECIP_PROBABILITY_PERCENT);
         supplyMap(target, descriptions, FORECAST_DESCR);
 
-        System.out.println("all together:" + target);
-
         Map<Long, HourlyDataWrapper> hourlyData = new LinkedHashMap<>();
         Stream.of(target).forEach(entry -> {
             HourlyDataWrapper hdw = new HourlyDataWrapper();
@@ -163,9 +162,8 @@ public class DailyForecastParser {
         Matcher arrayMatcher = pArray.matcher(payload.replaceAll("[\r\n]", ""));
 
         if (arrayMatcher.find()) {
-            System.out.println("match found for $arrayName");
+            Log.i("parser", "match found for " + arrayName);
             String array = arrayMatcher.group(1);
-            System.out.println(String.format("raw data for %s: %s", arrayName, array));
 
             Matcher xyMatcher = pXY.matcher(array);
 
@@ -197,7 +195,7 @@ public class DailyForecastParser {
                 resultItems.add(map);
             }
         } else {
-            System.out.println("no match found");
+            Log.w("parser", "no match found for array " + arrayName);
         }
         return resultItems;
     }

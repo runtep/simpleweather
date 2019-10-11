@@ -10,7 +10,7 @@ import org.roko.smplweather.model.DailyListViewItemModel;
 
 public class DailyForecastListViewAdapter extends BasicListViewAdapter<DailyListViewItemModel> {
     public DailyForecastListViewAdapter(Context ctx) {
-        super(ctx, R.layout.card);
+        super(ctx, R.layout.daily_item);
     }
 
     @Override
