@@ -188,7 +188,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         mFooter = findViewById(R.id.footer);
 
         String urlString = getString(R.string.url_main);
-        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), urlString);
+        String[] lightweightPages = getResources().getStringArray(R.array.lightweightPages);
+        mNetworkFragment =
+                NetworkFragment.getInstance(getSupportFragmentManager(), urlString, lightweightPages);
     }
 
     @Override

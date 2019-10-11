@@ -27,7 +27,7 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
+public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrapper> {
     private RequestCallback<TaskResult> callback;
     private Map<String, Object> sessionStorage;
     private Bundle bundle;
@@ -61,21 +61,22 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
         }
     }
 
-    protected ResponseWrapper doInBackground(String... args) {
+    protected ResponseWrapper doInBackground(TaskCallContext... args) {
         ResponseWrapper res = null;
-        if (!isCancelled() && args != null && args.length == 3) {
-            String urlString = args[0];
-            String actionString = args[1];
-            String queryString = args[2];
-            res = processBackgroundRequest(urlString, actionString, queryString);
+        if (!isCancelled() && args != null && args.length > 0) {
+            TaskCallContext ctx = args[0];
+            res = processBackgroundRequest(ctx);
             if (res != null) {
-                res.action = actionString;
+                res.action = ctx.getAction();
             }
         }
         return res;
     }
 
-    private ResponseWrapper processBackgroundRequest(String url, String action, String query) {
+    private ResponseWrapper processBackgroundRequest(TaskCallContext ctx) {
+        final String url = ctx.getUrl();
+        final String action = ctx.getAction();
+        final String query = ctx.getQuery();
         ResponseWrapper responseWrapper = null;
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder().baseUrl(url);
         if (TaskAction.GET_HOURLY_FORECAST.equals(action)) {
@@ -100,7 +101,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
             case TaskAction.GET_RSS_ID_BY_CITY_ID: {
                 try {
                     // cookies are necessary to fetch rss feed id by cityId
-                    processor.checkCookies(url, sessionStorage);
+                    processor.checkCookies(url, ctx.getPages(), sessionStorage);
                     responseWrapper = processor.processGetRssIdByCityId(service, query, sessionStorage);
                 } catch (IOException e) {
                     responseWrapper = new ResponseWrapper(e);
@@ -109,7 +110,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
             break;
             case TaskAction.GET_HOURLY_FORECAST: {
                 try {
-                    processor.checkCookies(url, sessionStorage);
+                    processor.checkCookies(url, ctx.getPages(), sessionStorage);
                     responseWrapper = processor.processGetHourlyForecastByCityId(service, query, sessionStorage);
                 } catch (IOException e) {
                     responseWrapper = new ResponseWrapper(e);

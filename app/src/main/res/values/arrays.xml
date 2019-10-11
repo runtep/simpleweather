@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- list of lightweight pages which are used to get cookies -->
+    <string-array name="lightweightPages">
+        <item>vacancies</item>
+        <item>disserboard</item>
+        <item>konkurs</item>
+    </string-array>
+</resources>

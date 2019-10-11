@@ -7,6 +7,7 @@ import android.os.Bundle;
 import org.roko.smplweather.tasks.GenericTask;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.RequestCallback;
+import org.roko.smplweather.tasks.TaskCallContext;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -19,18 +20,22 @@ import androidx.fragment.app.FragmentManager;
 public class NetworkFragment extends Fragment {
 
     private static final String URL_KEY = "UrlKey";
+    private static final String PAGES_KEY = "PagesKey";
 
     public static final String TAG = "NetworkFragment";
 
     private String urlString;
+    private String[] lightweightPages;
     private RequestCallback<TaskResult> callback;
     private GenericTask task;
     private Map<String, Object> sessionStorage = new HashMap<>();
 
-    public static NetworkFragment getInstance(FragmentManager fragmentManager, String url) {
+    public static NetworkFragment getInstance(FragmentManager fragmentManager, String url,
+                                              String[] lightWeightPages) {
         NetworkFragment networkFragment = new NetworkFragment();
         Bundle args = new Bundle();
         args.putString(URL_KEY, url);
+        args.putStringArray(PAGES_KEY, lightWeightPages);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
         return networkFragment;
@@ -42,6 +47,7 @@ public class NetworkFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         urlString = getArguments().getString(URL_KEY);
+        lightweightPages = getArguments().getStringArray(PAGES_KEY);
     }
 
     @Override
@@ -72,7 +78,7 @@ public class NetworkFragment extends Fragment {
         task = new GenericTask(callback);
         task.setSessionStorage(sessionStorage);
         task.setBundle(bundle);
-        task.execute(urlString, actionString, queryString);
+        task.execute(TaskCallContext.of(urlString, actionString, queryString, lightweightPages));
     }
 
     public void interruptTask() {

@@ -2,16 +2,17 @@ package org.roko.smplweather.tasks;
 
 import org.roko.smplweather.model.City;
 import org.roko.smplweather.model.HourlyForecast;
-import org.roko.smplweather.model.xml.RssChannel;
-import org.roko.smplweather.model.xml.RssResponse;
 import org.roko.smplweather.model.json.Result;
 import org.roko.smplweather.model.json.SearchCityResponse;
+import org.roko.smplweather.model.xml.RssChannel;
+import org.roko.smplweather.model.xml.RssResponse;
 import org.roko.smplweather.utils.DailyForecastParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,8 @@ final class RequestProcessor {
     private static final String HEADER_KEY_SET_COOKIE = "Set-Cookie";
     private static final String PATTERN_EXTRACT_RSS_ID =
             ".?(<a +href=[^<]+</a>[^<]+){0,1}(<a +href=.?\"[^=]+=(\\d+).?\">RSS</a>).?";
+
+    private Random random = new Random();
 
     ResponseWrapper processReadRssRequest(GenericTask.ApiService service, String queryString) {
         ResponseWrapper requestResult;
@@ -45,11 +48,13 @@ final class RequestProcessor {
         return requestResult;
     }
 
-    void checkCookies(String url, Map<String, Object> sessionStorage) throws IOException {
+    void checkCookies(String url, List<String> pages,
+                      Map<String, Object> sessionStorage) throws IOException {
         if (!sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
             OkHttpClient okHttpClient = new OkHttpClient();
+            String targetUrl = randomPage(url, pages);
             Request okRequest = new Request.Builder()
-                    .url(url)
+                    .url(targetUrl)
                     .build();
             okhttp3.Call okCall = okHttpClient.newCall(okRequest);
             okhttp3.ResponseBody responseBody = null;
@@ -190,5 +195,10 @@ final class RequestProcessor {
             }
             return cityList;
         }
+    }
+
+    private String randomPage(String url, List<String> pages) {
+        int k = random.nextInt(pages.size());
+        return url + (url.charAt(url.length() - 1) == '/' ? "" : "/") + pages.get(k);
     }
 }
