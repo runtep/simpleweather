@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.roko.smplweather.R;
+import org.roko.smplweather.adapter.recycler.HeaderItemDecoration;
 import org.roko.smplweather.adapter.recycler.HourlyForecastRecyclerViewAdapter;
 import org.roko.smplweather.model.HourlyListViewItemModel;
 
@@ -32,6 +33,7 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
         mContentHolder = view.findViewById(R.id.contentHolder);
         mForecastAdapter = new HourlyForecastRecyclerViewAdapter();
         mContentHolder.setAdapter(mForecastAdapter);
+        mContentHolder.addItemDecoration(new HeaderItemDecoration(mForecastAdapter));
 
         return view;
     }
@@ -46,7 +48,7 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FRAGMENT_STATE)){
+        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FRAGMENT_STATE)) {
             Serializable state = savedInstanceState.getSerializable(BUNDLE_KEY_FRAGMENT_STATE);
             if (state != null && FragmentState.class == state.getClass()) {
                 updateContent(((FragmentState) state).items);
@@ -54,6 +56,7 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
         }
     }
 
+    @Override
     public void updateContent(List<HourlyListViewItemModel> items) {
         if (mForecastAdapter != null && mContentHolder != null) {
             mForecastAdapter.setItems(items);

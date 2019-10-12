@@ -6,18 +6,35 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Stream;
+
 import org.roko.smplweather.R;
 import org.roko.smplweather.model.HourlyListViewItemContent;
 import org.roko.smplweather.model.HourlyListViewItemDivider;
 import org.roko.smplweather.model.HourlyListViewItemModel;
 
+import java.util.Collections;
+import java.util.List;
+
 import androidx.annotation.NonNull;
 
 public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapter
-        <AbstractRecyclerViewAdapter.AbstractViewHolder<HourlyListViewItemModel>, HourlyListViewItemModel> {
+        <AbstractRecyclerViewAdapter.AbstractViewHolder<HourlyListViewItemModel>, HourlyListViewItemModel>
+        implements HeaderItemDecoration.StickyHeaderInterface {
+
+    private List<Integer> headerIndices = Collections.emptyList();
 
     public HourlyForecastRecyclerViewAdapter() {
         super();
+    }
+
+    @Override
+    public void setItems(List<HourlyListViewItemModel> items) {
+        super.setItems(items);
+        headerIndices = Stream.range(0, items.size() - 1)
+                .filter(i -> HourlyListViewItemDivider.class == items.get(i).getClass())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -44,6 +61,32 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
             return new DividerViewHolder(view);
         }
         throw new IllegalArgumentException("Unrecognized type of view");
+    }
+
+
+    @Override
+    public int getHeaderPositionForItem(int itemPosition) {
+        return Stream.of(headerIndices)
+                .filter(itm -> itm <= itemPosition)
+                .findLast()
+                .orElse(0);
+    }
+
+    @Override
+    public int getHeaderLayout(int headerPosition) {
+        return R.layout.sticky_header;
+    }
+
+    @Override
+    public void bindHeaderData(View header, int headerPosition) {
+        TextView tv = header.findViewById(R.id.listDividerText);
+        HourlyListViewItemDivider d = (HourlyListViewItemDivider) this.items.get(headerPosition);
+        tv.setText(d.getTitle());
+    }
+
+    @Override
+    public boolean isHeader(int itemPosition) {
+        return headerIndices.contains(itemPosition);
     }
 
     private static abstract class HourlyForecastViewHolder<T extends HourlyListViewItemModel>
