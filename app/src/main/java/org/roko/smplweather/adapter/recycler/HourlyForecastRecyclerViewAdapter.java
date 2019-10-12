@@ -1,9 +1,12 @@
 package org.roko.smplweather.adapter.recycler;
 
+import android.content.res.Resources;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.annimon.stream.Collectors;
@@ -110,6 +113,7 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
             extends HourlyForecastViewHolder<HourlyListViewItemContent> {
 
         TextView tvTime, tvTemp, tvDesc, tvWind, tvHum, tvPrecip, tvPrecipProb;
+        ImageView oval;
 
         DetailsViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -121,6 +125,7 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
             tvHum = itemView.findViewById(R.id.hiHumidityLevel);
             tvPrecip = itemView.findViewById(R.id.hiPrecipLevel);
             tvPrecipProb = itemView.findViewById(R.id.hiPrecipProbability);
+            oval = itemView.findViewById(R.id.oval);
         }
 
         @Override
@@ -131,7 +136,25 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
             setValueOrHideIfEmpty(tvWind, m.getWind());
             tvHum.setText(m.getHumidity());
             tvPrecip.setText(m.getPrecipLevel());
-            tvPrecipProb .setText(m.getPrecipProbability());
+            tvPrecipProb.setText(m.getPrecipProbability());
+
+            float diameterPercentage = m.getOvalDiameterVariationPercentage();
+            if (diameterPercentage > .0f) {
+                int sizeDp = getOvalSizeDp(diameterPercentage);
+                oval.getLayoutParams().width = sizeDp;
+                oval.getLayoutParams().height = sizeDp;
+                oval.setVisibility(View.VISIBLE);
+            } else {
+                oval.setVisibility(View.GONE);
+            }
+        }
+
+        private int getOvalSizeDp(float percentage) {
+            Resources r = itemView.getContext().getResources();
+            int diameter = r.getInteger(R.integer.minOvalDiameterDp)
+                    + (int) (r.getInteger(R.integer.ovalDiameterVariationRangeDp) * percentage / 100d);
+            return (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, diameter, r.getDisplayMetrics());
         }
     }
 

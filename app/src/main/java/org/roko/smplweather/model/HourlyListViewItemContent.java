@@ -8,6 +8,7 @@ public class HourlyListViewItemContent implements HourlyListViewItemModel {
             humidity,
             precipLevel,
             precipProbability;
+    private float ovalDiameterVariationPercentage = 0;
 
     public HourlyListViewItemContent() {}
 
@@ -65,5 +66,13 @@ public class HourlyListViewItemContent implements HourlyListViewItemModel {
 
     public void setPrecipProbability(String precipProbability) {
         this.precipProbability = precipProbability;
+    }
+
+    public float getOvalDiameterVariationPercentage() {
+        return ovalDiameterVariationPercentage;
+    }
+
+    public void setOvalDiameterVariationPercentage(float ovalDiameterVariationPercentage) {
+        this.ovalDiameterVariationPercentage = ovalDiameterVariationPercentage;
     }
 }

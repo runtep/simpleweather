@@ -807,9 +807,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             vm.setTime(time);
             // Temperature
             String tempCelsius = hdw.getTempCelsius();
-            if (!"0".equals(tempCelsius) && '-' != tempCelsius.charAt(0)) {
-                tempCelsius = "+" + tempCelsius;
-            }
             vm.setTemperature(tempCelsius + "°");
             // Description
             String desc = hdw.getDescription();
@@ -829,12 +826,22 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             // Humidity
             vm.setHumidity("Влажность " + hdw.getHumidityPercent() + "%");
             // Precipitation
-            String precipLevel = hdw.getPrecipitationMillimeters();
-            if (!TextUtils.isEmpty(precipLevel) && !"0".equals(precipLevel.trim())) {
-                String prob = hdw.getPrecipitationProbability();
-
-                vm.setPrecipLevel(precipLevel + " мм");
-                vm.setPrecipProbability(prob + "%");
+            String precipitationLevel = hdw.getPrecipitationMillimeters();
+            if (!TextUtils.isEmpty(precipitationLevel)) {
+                float ovalDiameterVariationPercentage = .0f;
+                float valueMm = .0f;
+                try {
+                    valueMm = Float.parseFloat(precipitationLevel);
+                    float maxValueThresholdMm = 20f;
+                    ovalDiameterVariationPercentage =
+                            Math.min(valueMm, maxValueThresholdMm) * 100f / maxValueThresholdMm;
+                } catch (NumberFormatException ignored) { }
+                vm.setOvalDiameterVariationPercentage(ovalDiameterVariationPercentage);
+                if (valueMm > .0f) {
+                    String prob = hdw.getPrecipitationProbability();
+                    vm.setPrecipLevel(valueMm + " мм");
+                    vm.setPrecipProbability(prob + "%");
+                }
             }
             res.add(vm);
         }

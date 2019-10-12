@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="minSuggestLenThreshold">2</integer>
+    <integer name="minOvalDiameterDp">5</integer>
+    <integer name="ovalDiameterVariationRangeDp">45</integer>
+    <integer name="maxPrecipitationLevelThresholdMm">20</integer>
 </resources>
