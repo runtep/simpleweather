@@ -15,16 +15,17 @@
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp">
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="6dp"
+        android:paddingRight="12dp"
+        tools:ignore="RtlHardcoded">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:orientation="vertical"
-            android:paddingLeft="6dp"
-            android:paddingRight="6dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/hiTemperature"
@@ -32,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:textAlignment="center"
-                android:textSize="20sp"
+                android:textSize="@dimen/tempSecondary"
                 android:textStyle="bold"
                 tools:text="-22.9°" />
 
@@ -47,7 +48,7 @@
                 android:layout_gravity="center_horizontal"
                 android:gravity="bottom"
                 android:textAlignment="center"
-                android:textSize="12sp"
+                android:textSize="@dimen/detailSecondary"
                 android:textStyle="normal"
                 tools:text="10:00" />
         </LinearLayout>
@@ -55,6 +56,8 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
             android:layout_gravity="top"
             android:layout_weight="1"
             android:orientation="vertical">
@@ -63,7 +66,7 @@
                 android:id="@+id/hiDescription"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textSize="14sp"
+                android:textSize="@dimen/detailPrimary"
                 tools:text="Прогноз, наличие осадков" />
 
             <Space
@@ -74,7 +77,7 @@
                 android:id="@+id/hiWind"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textSize="12sp"
+                android:textSize="@dimen/detailSecondary"
                 tools:text="Ветер Ю &#x2191; 2 м/с" />
 
             <Space
@@ -85,7 +88,7 @@
                 android:id="@+id/hiHumidityLevel"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textSize="12sp"
+                android:textSize="@dimen/detailSecondary"
                 tools:text="Влажность 45%" />
         </LinearLayout>
 
@@ -93,8 +96,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:orientation="vertical"
-            android:paddingRight="6dp">
+            android:orientation="vertical">
 
             <ImageView
                 android:id="@+id/oval"
@@ -114,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textAlignment="center"
-                android:textSize="12sp"
+                android:textSize="@dimen/detailSecondary"
                 android:textStyle="normal"
                 tools:text="0.2 мм" />
 
@@ -128,7 +130,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textAlignment="center"
-                android:textSize="12sp"
+                android:textSize="@dimen/detailSecondary"
                 android:textStyle="normal"
                 tools:text="55%" />
         </LinearLayout>
