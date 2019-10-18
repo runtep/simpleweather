@@ -6,4 +6,14 @@
         <item>disserboard</item>
         <item>konkurs</item>
     </string-array>
+    <string-array name="windDirectionArrows">
+        <item name="n">&#x2193;</item>
+        <item name="ne">&#x2199;</item>
+        <item name="e">&#x2190;</item>
+        <item name="se">&#x2196;</item>
+        <item name="s">&#x2191;</item>
+        <item name="sw">&#x2197;</item>
+        <item name="w">&#x2192;</item>
+        <item name="nw">&#x2198;</item>
+    </string-array>
 </resources>

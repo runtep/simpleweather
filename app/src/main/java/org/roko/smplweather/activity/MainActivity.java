@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.annimon.stream.Collectors;
@@ -49,12 +48,14 @@ import org.roko.smplweather.utils.CalendarHelper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -117,6 +118,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     };
 
+    private static List<String> WIND_DIRECTIONS =
+            Collections.unmodifiableList(Arrays.asList("С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"));
+
     private NetworkFragment mNetworkFragment;
 
     private boolean isRequestRunning = false;
@@ -125,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private ForecastPagerAdapter mPagerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private BasicListViewAdapter mSuggestionsAdapter;
-    private TextView mFooter;
 
     private MainActivityViewModel model;
     private SuggestionsModel suggestionsModel;
@@ -184,8 +187,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 }
             }
         });
-
-        mFooter = findViewById(R.id.footer);
 
         String urlString = getString(R.string.url_main);
         String[] lightweightPages = getResources().getStringArray(R.array.lightweightPages);
@@ -315,13 +316,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             f1.updateContent(toDailyViewModel(model.getDailyItems()));
             f2.updateContent(model.getHourlyViewModel());
-            long lastUpdateUTC = getLastUpdateMillis();
-            if (lastUpdateUTC != -1) {
-                DF_TARGET.get().setTimeZone(TimeZone.getDefault()); // to user's timezone
-                String forecastFromDateTime = DF_TARGET.get().format(new Date(lastUpdateUTC));
-                String footer = getString(R.string.footer_actuality) + " " + forecastFromDateTime;
-                mFooter.setText(footer);
-            }
         }
     }
 
@@ -382,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     if (hf.isEmpty()) {
                         model.setHourlyViewModel(Collections.emptyList());
                     } else {
-                        model.setHourlyViewModel(toHourlyViewModel(hf));
+                        model.setHourlyViewModel(toHourlyViewModel(this, hf));
                     }
                     storeLastUpdateTime(System.currentTimeMillis());
                     updateUIFromViewModel(model);
@@ -683,7 +677,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     } else {
                         dirShort += Character.toUpperCase(dirFull.charAt(0));
                     }
-                    forecastItem.setWind(dirShort + ", " + velocity);
+                    String arrow = windDirectionArrow(context.getResources()
+                            .getStringArray(R.array.windDirectionArrows), dirShort);
+                    forecastItem.setWind(dirShort + " " + arrow + " " + velocity);
                 } else {
                     forecastDescription.append("\n").append(windDesc);
                 }
@@ -748,7 +744,8 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private static List<HourlyListViewItemModel> toHourlyViewModel(HourlyForecast hf) {
+    private static List<HourlyListViewItemModel> toHourlyViewModel(Context context,
+                                                                   HourlyForecast hf) {
         List<HourlyListViewItemModel> hourlyListViewItemModels = new ArrayList<>();
 
         // Obtain wall-time of user`s device ported into UTC. This trick is needed
@@ -786,13 +783,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
             hourlyListViewItemModels.add(new HourlyListViewItemDivider(title));
             List<HourlyDataWrapper> hourlyData = hf.getHourlyDataForDay(day);
-            hourlyListViewItemModels.addAll(toHourlyContent(hourlyData));
+            hourlyListViewItemModels.addAll(toHourlyContent(context, hourlyData));
         }
 
         return hourlyListViewItemModels;
     }
 
-    private static List<HourlyListViewItemContent> toHourlyContent(List<HourlyDataWrapper> items) {
+    private static List<HourlyListViewItemContent> toHourlyContent(Context context,
+                                                                   List<HourlyDataWrapper> items) {
         List<HourlyListViewItemContent> res = new ArrayList<>(items.size());
         HH_MM.get().setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -815,8 +813,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             String windSpeed = hdw.getWindSpeedMeters();
             StringBuilder windInfo = new StringBuilder();
             if (!TextUtils.isEmpty(windSpeed)) {
-                if(!"0".equals(windSpeed.trim())) {
-                    windInfo.append("Ветер ").append(hdw.getWindDirName()).append(", ").
+                if (!"0".equals(windSpeed.trim())) {
+                    String direction = hdw.getWindDirName().replace("-", "");
+                    String arrow = windDirectionArrow(context.getResources()
+                            .getStringArray(R.array.windDirectionArrows), direction);
+                    windInfo.append("Ветер ").append(direction).append(" ").append(arrow).append(" ").
                             append(hdw.getWindSpeedMeters()).append(" м/с");
                 } else {
                     windInfo.append("Штиль");
@@ -835,7 +836,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     float maxValueThresholdMm = 20f;
                     ovalDiameterVariationPercentage =
                             Math.min(valueMm, maxValueThresholdMm) * 100f / maxValueThresholdMm;
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {}
                 vm.setOvalDiameterVariationPercentage(ovalDiameterVariationPercentage);
                 if (valueMm > .0f) {
                     String prob = hdw.getPrecipitationProbability();
@@ -897,5 +898,16 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
 
         return res;
+    }
+
+    private static String windDirectionArrow(String[] arrayOfArrows, String windDirectionString) {
+        if (WIND_DIRECTIONS.size() != arrayOfArrows.length) {
+            throw new IllegalArgumentException("Inconsistent wind directions data");
+        }
+        int index = WIND_DIRECTIONS.indexOf(windDirectionString);
+        if (index != -1) {
+            return arrayOfArrows[index];
+        }
+        return windDirectionString;
     }
 }

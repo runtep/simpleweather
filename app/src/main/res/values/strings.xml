@@ -14,7 +14,6 @@
     <string name="tab_hourly">Hourly</string>
 
     <string name="no_data">No data</string>
-    <string name="footer_actuality">Forecast provided</string>
 
     <string name="url_main" translatable="false">https://meteoinfo.ru/</string>
     <string name="default_rss_id" translatable="false">28900</string>

@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textStyle="bold"
-            tool:text="Sunday, 13 January" />
+            tool:text="Воскресенье, 13 Января" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -47,7 +47,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="28sp"
                         android:textStyle="normal"
-                        tool:text="-11°C" />
+                        tool:text="-11°" />
                     <TextView
                         android:id="@+id/tempDivider"
                         android:layout_width="wrap_content"
@@ -61,7 +61,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
-                        tool:text="-18°C" />
+                        tool:text="-18°" />
                 </LinearLayout>
             </RelativeLayout>
             <RelativeLayout
@@ -82,7 +82,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="14sp"
-                            tool:text="SW, 12 m/s" />
+                            tool:text="ЮЗ &#x2197; 12 м/с" />
                     </LinearLayout>
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -94,7 +94,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textSize="14sp"
-                            tool:text="745-748 mm hg.col." />
+                            tool:text="745-748 мм рт.ст." />
                     </LinearLayout>
                 </LinearLayout>
             </RelativeLayout>
@@ -104,6 +104,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            tool:text="Forecast details...\nPrecipitation probability 14%" />
+            tool:text="Детали прогноза...\nВероятность осадков 14%" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

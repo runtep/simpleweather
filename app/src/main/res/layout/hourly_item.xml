@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:textAlignment="center"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 tools:text="-22.9°" />
 
@@ -68,14 +68,14 @@
 
             <Space
                 android:layout_width="match_parent"
-                android:layout_height="2dp" />
+                android:layout_height="6dp" />
 
             <TextView
                 android:id="@+id/hiWind"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textSize="12sp"
-                tools:text="Ветер Ю, 2 м/с" />
+                tools:text="Ветер Ю &#x2191; 2 м/с" />
 
             <Space
                 android:layout_width="match_parent"

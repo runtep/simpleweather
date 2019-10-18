@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Simple Weather</string>
+    <string name="app_name">Погода</string>
     <string name="toast_update_completed">Прогноз получен</string>
     <string name="toast_update_error">Ошибка получения данных</string>
     <string name="dots_menu_btn_refresh">Обновить</string>
-    <string name="footer_actuality">Прогноз от</string>
     <string name="toast_no_content">Ничего не найдено</string>
     <string name="toast_network_issue">Сетевое соединение недоступно</string>
     <string name="no_data">Нет данных</string>
