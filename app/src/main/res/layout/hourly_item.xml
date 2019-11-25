@@ -27,6 +27,24 @@
             android:gravity="center"
             android:orientation="vertical">
 
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="2dp" />
+
+            <TextView
+                android:id="@+id/hiTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textAlignment="center"
+                android:textSize="@dimen/detailSecondary"
+                android:textStyle="normal"
+                tools:text="10:00" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="6dp" />
+
             <TextView
                 android:id="@+id/hiTemperature"
                 android:layout_width="60dp"
@@ -37,20 +55,6 @@
                 android:textStyle="bold"
                 tools:text="-22.9°" />
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="6dp" />
-
-            <TextView
-                android:id="@+id/hiTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="bottom"
-                android:textAlignment="center"
-                android:textSize="@dimen/detailSecondary"
-                android:textStyle="normal"
-                tools:text="10:00" />
         </LinearLayout>
 
         <LinearLayout
@@ -108,7 +112,7 @@
 
             <Space
                 android:layout_width="match_parent"
-                android:layout_height="2dp" />
+                android:layout_height="4dp" />
 
             <TextView
                 android:id="@+id/hiPrecipLevel"
