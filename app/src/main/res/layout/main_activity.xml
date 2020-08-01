@@ -52,6 +52,6 @@
             android:id="@+id/suggestionsView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/background_light"/>
+            android:background="?android:attr/colorBackground"/>
     </LinearLayout>
 </FrameLayout>

@@ -11,5 +11,8 @@
         android:icon="@drawable/ic_menu_refresh"
         android:title="@string/dots_menu_btn_refresh"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_switch_ui_mode"
+        android:title="@string/dots_menu_switch_ui_mode"/>
 
 </menu>

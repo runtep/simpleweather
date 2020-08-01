@@ -9,6 +9,7 @@ public final class Constants {
     public static final String PARAMS_KEY_LAST_UPDATE_MILLIS = "lastUpdateMillis";
     public static final String PARAMS_KEY_TIME_TO_LIVE_MILLIS = "timeToLiveMillis";
     public static final String PARAMS_KEY_CITY_ID = "cityId";
+    public static final String PARAMS_UI_MODE = "uiMode";
 
     public static final String BUNDLE_KEY_SESSION_STORAGE = "org.roko.smplweather.SESSION_STORAGE";
 

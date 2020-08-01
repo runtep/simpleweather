@@ -1,8 +1,13 @@
 <resources>
     <string name="app_name">Simple Weather</string>
     <string name="dots_menu_btn_refresh">Refresh</string>
+    <string name="dots_menu_switch_ui_mode">UI theme</string>
     <string name="search_title">Search city</string>
     <string name="search_hint">City</string>
+
+    <string name="ui_mode_light">Light</string>
+    <string name="ui_mode_dark">Dark</string>
+    <string name="ui_mode_follow_system">Follow system</string>
 
     <string name="toast_update_completed">Update completed</string>
     <string name="toast_no_content">No content found</string>

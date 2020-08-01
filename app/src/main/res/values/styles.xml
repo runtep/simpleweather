@@ -1,5 +1,5 @@
 <resources>
-    <style name="CustomAppTheme" parent="Theme.AppCompat.Light">
+    <style name="CustomAppTheme" parent="Theme.AppCompat.DayNight">
         <item name="android:windowActionBar">true</item>
     </style>
 </resources>

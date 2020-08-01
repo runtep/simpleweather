@@ -16,4 +16,14 @@
         <item name="w">&#x2192;</item>
         <item name="nw">&#x2198;</item>
     </string-array>
+    <string-array name="uiModes">
+        <item>@string/ui_mode_light</item>
+        <item>@string/ui_mode_dark</item>
+        <item>@string/ui_mode_follow_system</item>
+    </string-array>
+    <integer-array name="uiModeValues">
+        <item>1</item>
+        <item>2</item>
+        <item>-1</item>
+    </integer-array>
 </resources>

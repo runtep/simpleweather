@@ -4,6 +4,10 @@
     <string name="toast_update_completed">Прогноз получен</string>
     <string name="toast_update_error">Ошибка получения данных</string>
     <string name="dots_menu_btn_refresh">Обновить</string>
+    <string name="dots_menu_switch_ui_mode">Тема приложения</string>
+    <string name="ui_mode_light">Светлая</string>
+    <string name="ui_mode_dark">Темная</string>
+    <string name="ui_mode_follow_system">Определяется системой</string>
     <string name="toast_no_content">Ничего не найдено</string>
     <string name="toast_network_issue">Сетевое соединение недоступно</string>
     <string name="no_data">Нет данных</string>

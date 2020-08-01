@@ -10,7 +10,6 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -55,7 +54,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -64,7 +62,9 @@ import java.util.regex.Pattern;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
@@ -524,6 +524,33 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             case R.id.action_refresh:
                 fetchRssBodyThenHourlyData(getStoredRssId(), getStoredCityId());
                 return true;
+            case R.id.action_switch_ui_mode: {
+                int mode = getSharedPreferences().getInt(Constants.PARAMS_UI_MODE,
+                        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                int[] array = getResources().getIntArray(R.array.uiModeValues);
+                int selectedModeIdx = -1;
+                for (int i = 0; i < array.length; i++) {
+                    if (array[i] == mode) {
+                        selectedModeIdx = i;
+                        break;
+                    }
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.dots_menu_switch_ui_mode)
+                        .setSingleChoiceItems(
+                                getResources().getStringArray(R.array.uiModes),
+                                selectedModeIdx,
+                                (dialog, which) -> {
+                                    int selectedMode = array[which];
+                                    getSharedPreferences().edit()
+                                            .putInt(Constants.PARAMS_UI_MODE, selectedMode)
+                                            .apply();
+                                    AppCompatDelegate.setDefaultNightMode(selectedMode);
+                                })
+                        .setPositiveButton("OK", null)
+                        .show();
+            }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -532,13 +559,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         mSearchView.setQuery("", false);
         mSearchView.setIconified(true);
         mSearchMenuItem.collapseActionView();
-    }
-
-    private static void setEnabled(ViewGroup v, boolean enabled) {
-        v.setEnabled(enabled);
-        for (int i = 0; i < v.getChildCount(); i++) {
-            v.getChildAt(i).setEnabled(enabled);
-        }
     }
 
     //----------------------------------------------------------------------------------------------
