@@ -3,11 +3,11 @@ package org.roko.smplweather;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
+import org.roko.smplweather.tasks.TaskAction;
 
 public interface RequestCallback<T> {
 
-    void handleResult(String taskAction, @NonNull T result, Bundle bundle);
+    void handleResult(@TaskAction String taskAction, T result, Bundle nextTask);
 
     NetworkInfo getActiveNetworkInfo();
 }

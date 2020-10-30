@@ -14,8 +14,8 @@ import org.roko.smplweather.model.json.SearchCityResponse;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.List;
-import java.util.Map;
 
+import androidx.annotation.Nullable;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -28,25 +28,18 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrapper> {
-    private RequestCallback<TaskResult> callback;
-    private ContentValues sessionStorage;
-    private Bundle bundle;
+public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
 
-    public GenericTask(RequestCallback<TaskResult> callback) {
+    private RequestCallback<TaskResult> callback;
+    private final TaskCallContext taskCallContext;
+
+    public GenericTask(RequestCallback<TaskResult> callback, TaskCallContext taskCallContext) {
         setCallback(callback);
+        this.taskCallContext = taskCallContext;
     }
 
     public void setCallback(RequestCallback<TaskResult> callback) {
         this.callback = callback;
-    }
-
-    public void setSessionStorage(ContentValues sessionStorage) {
-        this.sessionStorage = sessionStorage;
-    }
-
-    public void setBundle(Bundle bundle) {
-        this.bundle = bundle != null ? bundle : Bundle.EMPTY;
     }
 
     @Override
@@ -56,33 +49,32 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
             if (networkInfo == null || !networkInfo.isConnected() ||
                     (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
                             && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
-                callback.handleResult("cancel", new TaskResult(TaskResult.Code.NETWORK_ISSUE), bundle);
+                callback.handleResult(taskCallContext.getAction(),
+                        new TaskResult(TaskResult.Code.NETWORK_ISSUE),
+                        Bundle.EMPTY);
                 cancel(true);
             }
         }
     }
 
-    protected ResponseWrapper doInBackground(TaskCallContext... args) {
+    protected ResponseWrapper doInBackground(String... args) {
         ResponseWrapper res = null;
         if (!isCancelled() && args != null && args.length > 0) {
-            TaskCallContext ctx = args[0];
-            res = processBackgroundRequest(ctx);
-            if (res != null) {
-                res.action = ctx.getAction();
-            }
+            String query = args[0];
+            res = processBackgroundRequest(query, taskCallContext);
         }
         return res;
     }
 
-    private ResponseWrapper processBackgroundRequest(TaskCallContext ctx) {
+    private ResponseWrapper processBackgroundRequest(final String query, TaskCallContext ctx) {
         final String url = ctx.getUrl();
-        final String action = ctx.getAction();
-        final String query = ctx.getQuery();
+        final @TaskAction String action = ctx.getAction();
+        final ContentValues sessionStorage = ctx.getSessionStorage();
         ResponseWrapper responseWrapper = null;
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder().baseUrl(url);
-        if (TaskAction.GET_HOURLY_FORECAST.equals(action)) {
+        if (TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID.equals(action)) {
             retrofitBuilder.addConverterFactory(ScalarsConverterFactory.create());
-        } else if (TaskAction.GET_RSS_BODY_BY_ID.equals(action)) {
+        } else if (TaskAction.GET_RSS_BODY_BY_RSS_ID.equals(action)) {
             retrofitBuilder.addConverterFactory(SimpleXmlConverterFactory.create());
         } else {
             retrofitBuilder.addConverterFactory(JacksonConverterFactory.create());
@@ -91,7 +83,7 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
         ApiService service = retrofit.create(ApiService.class);
         RequestProcessor processor = new RequestProcessor();
         switch (action) {
-            case TaskAction.GET_RSS_BODY_BY_ID: {
+            case TaskAction.GET_RSS_BODY_BY_RSS_ID: {
                 responseWrapper = processor.processReadRssRequest(service, query);
             }
             break;
@@ -109,7 +101,7 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
                 }
             }
             break;
-            case TaskAction.GET_HOURLY_FORECAST: {
+            case TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID: {
                 try {
                     processor.checkCookies(url, ctx.getPages(), sessionStorage);
                     responseWrapper = processor.processGetHourlyForecastByCityId(service, query, sessionStorage);
@@ -123,9 +115,8 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
         return responseWrapper;
     }
 
-
     @Override
-    protected void onPostExecute(ResponseWrapper result) {
+    protected void onPostExecute(@Nullable ResponseWrapper result) {
         if (result != null && callback != null) {
             TaskResult taskResult;
             if (result.exception != null) {
@@ -142,11 +133,12 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
                     taskResult = new TaskResult(TaskResult.Code.NULL_CONTENT);
                 }
             }
-            callback.handleResult(result.action, taskResult, bundle);
+            callback.handleResult(taskCallContext.getAction(), taskResult, taskCallContext.getNextTask());
         }
     }
 
     interface ApiService {
+
         @GET("rss/forecasts/index.php")
         Call<RssResponse> getRssByCityId(@Query("s") String cityId);
 

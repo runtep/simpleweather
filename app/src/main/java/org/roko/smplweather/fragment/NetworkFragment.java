@@ -7,6 +7,7 @@ import android.os.Bundle;
 import org.roko.smplweather.tasks.GenericTask;
 import org.roko.smplweather.TaskResult;
 import org.roko.smplweather.RequestCallback;
+import org.roko.smplweather.tasks.TaskAction;
 import org.roko.smplweather.tasks.TaskCallContext;
 
 import androidx.annotation.NonNull;
@@ -15,7 +16,8 @@ import androidx.fragment.app.FragmentManager;
 
 public class NetworkFragment extends Fragment {
 
-    private static final String STATE_KEY_SESSION_STORAGE = "org.roko.smplweather.SESSION_STORAGE";
+    private static final String STATE_KEY_SESSION_STORAGE =
+            "org.roko.smplweather.fragment.NetworkFragment.SESSION_STORAGE";
     private static final String ARG_KEY_URL = "UrlKey";
     private static final String ARG_KEY_PAGES = "PagesKey";
 
@@ -82,16 +84,15 @@ public class NetworkFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void startTask(String actionString, String queryString) {
-        startTask(actionString, queryString, Bundle.EMPTY);
+    public void startTask(@TaskAction String taskAction, String queryString) {
+        startTask(taskAction, queryString, Bundle.EMPTY);
     }
 
-    public void startTask(String actionString, String queryString, Bundle bundle) {
+    public void startTask(@TaskAction String taskAction, String queryString, Bundle nextTask) {
         interruptTask();
-        task = new GenericTask(callback);
-        task.setSessionStorage(sessionStorage);
-        task.setBundle(bundle);
-        task.execute(TaskCallContext.of(urlString, actionString, queryString, lightweightPages));
+        task = new GenericTask(callback, TaskCallContext.of(urlString, lightweightPages,
+                sessionStorage, taskAction, nextTask));
+        task.execute(queryString);
     }
 
     public void interruptTask() {

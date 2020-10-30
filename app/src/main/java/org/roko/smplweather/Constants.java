@@ -17,6 +17,7 @@ public final class Constants {
 
     public static final String BUNDLE_KEY_NEXT_TASK_ACTION = "nextTaskAction";
     public static final String BUNDLE_KEY_CITY_ID = "cityId";
+    /** Describes what has triggered the task (for informational purpose) */
     public static final String BUNDLE_KEY_TRIGGER = "trigger";
 
     public static final String RU_TODAY = "Сегодня";

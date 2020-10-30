@@ -1,34 +1,38 @@
 package org.roko.smplweather;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 
 public class TaskResult {
-    public interface Code {
+
+    @IntDef({Code.SUCCESS, Code.ERROR, Code.NETWORK_ISSUE, Code.NULL_CONTENT, Code.TIMEOUT_EXPIRED})
+    public @interface Code {
         int TIMEOUT_EXPIRED = -4;
         int NULL_CONTENT = -3;
         int NETWORK_ISSUE = -2;
         int ERROR = -1;
         int SUCCESS = 0;
     }
-    private final int code;
+    private final @Code int code;
     private String details;
     private Object content;
 
-    public TaskResult(int code) {
+    public TaskResult(@Code int code) {
         this.code = code;
     }
 
-    public TaskResult(int code, String message) {
+    public TaskResult(@Code int code, String message) {
         this.code = code;
         this.details = message;
     }
 
-    public TaskResult(int code, @NonNull Object content) {
+    public TaskResult(@Code int code,
+                      @NonNull Object content) {
         this.code = code;
         this.content = content;
     }
 
-    public int getCode() {
+    public @Code int getCode() {
         return code;
     }
 

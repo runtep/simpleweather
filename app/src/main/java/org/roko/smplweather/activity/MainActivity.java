@@ -58,7 +58,6 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -267,11 +266,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         if (!isRequestRunning) {
             isRequestRunning = true;
             mSwipeRefreshLayout.setRefreshing(true);
-            Bundle in = new Bundle();
-            in.putString(Constants.BUNDLE_KEY_TRIGGER, "swipeLayoutRefresh");
-            in.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_HOURLY_FORECAST);
-            in.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
-            mNetworkFragment.startTask(TaskAction.GET_RSS_BODY_BY_ID, rssId, in);
+            Bundle nextTask = new Bundle();
+            nextTask.putString(Constants.BUNDLE_KEY_TRIGGER, "swipeLayoutRefresh");
+            nextTask.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID);
+            nextTask.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
+            mNetworkFragment.startTask(TaskAction.GET_RSS_BODY_BY_RSS_ID, rssId, nextTask);
         }
     }
 
@@ -281,11 +280,11 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private void forceFetchRssIdThenBody(String cityId) {
         isRequestRunning = true;
         mSwipeRefreshLayout.setRefreshing(true);
-        Bundle in = new Bundle();
-        in.putString(Constants.BUNDLE_KEY_TRIGGER, "citySelectedFromListOfSuggestions");
-        in.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_RSS_BODY_BY_ID);
-        in.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
-        mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId, in);
+        Bundle nextTask = new Bundle();
+        nextTask.putString(Constants.BUNDLE_KEY_TRIGGER, "citySelectedFromListOfSuggestions");
+        nextTask.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_RSS_BODY_BY_RSS_ID);
+        nextTask.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
+        mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId, nextTask);
     }
 
     private void updateUIFromViewModel(MainActivityViewModel model) {
@@ -337,20 +336,19 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     // RequestCallback -----------------------------------------------------------------------------
 
     @Override
-    public void handleResult(String taskAction, @NonNull TaskResult result, Bundle out) {
+    public void handleResult(@TaskAction String taskAction, TaskResult result, Bundle nextTask) {
         int messageId = -1;
         switch (result.getCode()) {
             case TaskResult.Code.SUCCESS: {
-                if (TaskAction.GET_RSS_BODY_BY_ID.equals(taskAction)) {
+                if (TaskAction.GET_RSS_BODY_BY_RSS_ID.equals(taskAction)) {
                     RssChannel channel = (RssChannel) result.getContent();
                     model = convertToViewModel(channel);
                     storeTimeToLive(channel.getTtl());
-                    if (!out.containsKey(Constants.BUNDLE_KEY_NEXT_TASK_ACTION)) {
+                    if (!nextTask.containsKey(Constants.BUNDLE_KEY_NEXT_TASK_ACTION)) {
                         // If subsequent action is not demanded - show fetched result at once,
                         // otherwise view model will be updated after subsequent action
                         storeLastUpdateTime(System.currentTimeMillis());
                         updateUIFromViewModel(model);
-                        messageId = R.string.toast_update_completed;
                     }
                 } else if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
                     List<City> cityList = (List<City>) result.getContent();
@@ -358,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 } else if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
                     String rssId = (String) result.getContent();
                     storeSelected(rssId);
-                } else if (TaskAction.GET_HOURLY_FORECAST.equals(taskAction)) {
+                } else if (TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID.equals(taskAction)) {
                     HourlyForecast hf = (HourlyForecast) result.getContent();
                     if (model == null) {
                         model = new MainActivityViewModel();
@@ -396,25 +394,25 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         boolean keepRefreshingState = false;
 
         // Manage subsequent actions
-        if (TaskResult.Code.SUCCESS == result.getCode() && out.containsKey(Constants.BUNDLE_KEY_NEXT_TASK_ACTION)) {
-            String nextTaskAction = out.getString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION);
-            if (TaskAction.GET_HOURLY_FORECAST.equals(nextTaskAction)) {
+        if (TaskResult.Code.SUCCESS == result.getCode() && nextTask.containsKey(Constants.BUNDLE_KEY_NEXT_TASK_ACTION)) {
+            String nextTaskAction = nextTask.getString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION);
+            if (TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID.equals(nextTaskAction)) {
                 keepRefreshingState = true;
-                String cityId = out.getString(Constants.BUNDLE_KEY_CITY_ID);
-                mNetworkFragment.startTask(TaskAction.GET_HOURLY_FORECAST, cityId);
-            } else if (TaskAction.GET_RSS_BODY_BY_ID.equals(nextTaskAction)) {
+                String cityId = nextTask.getString(Constants.BUNDLE_KEY_CITY_ID);
+                mNetworkFragment.startTask(TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID, cityId);
+            } else if (TaskAction.GET_RSS_BODY_BY_RSS_ID.equals(nextTaskAction)) {
                 if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
                     keepRefreshingState = true;
 
-                    String cityId = out.getString(Constants.BUNDLE_KEY_CITY_ID);
+                    String cityId = nextTask.getString(Constants.BUNDLE_KEY_CITY_ID);
                     storeCityId(cityId);
 
-                    Bundle in = new Bundle();
-                    in.putString(Constants.BUNDLE_KEY_TRIGGER, "callChainAfterGetRssId");
-                    in.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_HOURLY_FORECAST);
-                    in.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
+                    Bundle next = new Bundle();
+                    next.putString(Constants.BUNDLE_KEY_TRIGGER, "callChainAfterGetRssId");
+                    next.putString(Constants.BUNDLE_KEY_NEXT_TASK_ACTION, TaskAction.GET_HOURLY_FORECAST_BY_CITY_ID);
+                    next.putString(Constants.BUNDLE_KEY_CITY_ID, cityId);
 
-                    mNetworkFragment.startTask(TaskAction.GET_RSS_BODY_BY_ID, (String) result.getContent(), in);
+                    mNetworkFragment.startTask(TaskAction.GET_RSS_BODY_BY_RSS_ID, (String) result.getContent(), next);
                 }
             }
         }

@@ -1,7 +1,7 @@
 package org.roko.smplweather.tasks;
 
 final class ResponseWrapper {
-    String action;
+
     Object content;
     Exception exception;
     ResponseWrapper(Object content) {
