@@ -11,8 +11,6 @@ public final class Constants {
     public static final String PARAMS_KEY_CITY_ID = "cityId";
     public static final String PARAMS_UI_MODE = "uiMode";
 
-    public static final String BUNDLE_KEY_SESSION_STORAGE = "org.roko.smplweather.SESSION_STORAGE";
-
     public static final String BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL = "mainActivityViewModel";
     public static final String BUNDLE_KEY_SUGGESTIONS_MODEL = "suggestionsModel";
     public static final String BUNDLE_KEY_FRAGMENT_STATE = "fragmentState";

@@ -1,5 +1,6 @@
 package org.roko.smplweather.tasks;
 
+import android.content.ContentValues;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -29,7 +30,7 @@ import retrofit2.http.Query;
 
 public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrapper> {
     private RequestCallback<TaskResult> callback;
-    private Map<String, Object> sessionStorage;
+    private ContentValues sessionStorage;
     private Bundle bundle;
 
     public GenericTask(RequestCallback<TaskResult> callback) {
@@ -40,7 +41,7 @@ public class GenericTask extends AsyncTask<TaskCallContext, Void, ResponseWrappe
         this.callback = callback;
     }
 
-    public void setSessionStorage(Map<String, Object> sessionStorage) {
+    public void setSessionStorage(ContentValues sessionStorage) {
         this.sessionStorage = sessionStorage;
     }
 

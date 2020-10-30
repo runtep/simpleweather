@@ -1,5 +1,7 @@
 package org.roko.smplweather.tasks;
 
+import android.content.ContentValues;
+
 import org.roko.smplweather.model.City;
 import org.roko.smplweather.model.HourlyForecast;
 import org.roko.smplweather.model.json.Result;
@@ -49,7 +51,7 @@ final class RequestProcessor {
     }
 
     void checkCookies(String url, List<String> pages,
-                      Map<String, Object> sessionStorage) throws IOException {
+                      ContentValues sessionStorage) throws IOException {
         if (!sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
             OkHttpClient okHttpClient = new OkHttpClient();
             String targetUrl = randomPage(url, pages);
@@ -104,7 +106,7 @@ final class RequestProcessor {
     }
 
     ResponseWrapper processGetRssIdByCityId(GenericTask.ApiService service, String query,
-                                                   Map<String, Object> sessionStorage) {
+                                            ContentValues sessionStorage) {
         String cookieHeader = "";
         if (sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
             cookieHeader = (String) sessionStorage.get(STORAGE_KEY_COOKIES);
@@ -134,8 +136,8 @@ final class RequestProcessor {
     }
 
     ResponseWrapper processGetHourlyForecastByCityId(GenericTask.ApiService service,
-                                                            String query,
-                                                            Map<String, Object> sessionStorage) {
+                                                     String query,
+                                                     ContentValues sessionStorage) {
         String cookieHeader = "";
         if (sessionStorage.containsKey(STORAGE_KEY_COOKIES)) {
             cookieHeader = (String) sessionStorage.get(STORAGE_KEY_COOKIES);

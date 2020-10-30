@@ -51,7 +51,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -200,10 +199,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         if (this.model != null) {
             outState.putSerializable(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL, model);
         }
-        HashMap m = (HashMap) mNetworkFragment.getSessionStorage();
-        if (!m.isEmpty()) {
-            outState.putSerializable(Constants.BUNDLE_KEY_SESSION_STORAGE, m);
-        }
         if (this.suggestionsModel != null) {
             suggestionsModel.setQuery(mSearchView.getQuery().toString());
             outState.putSerializable(Constants.BUNDLE_KEY_SUGGESTIONS_MODEL, suggestionsModel);
@@ -213,10 +208,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        HashMap m = (HashMap) savedInstanceState.getSerializable(Constants.BUNDLE_KEY_SESSION_STORAGE);
-        if (m != null && !m.isEmpty()) {
-            mNetworkFragment.setSessionStorage(m);
-        }
         suggestionsModel = (SuggestionsModel) savedInstanceState.getSerializable(
                 Constants.BUNDLE_KEY_SUGGESTIONS_MODEL);
         MainActivityViewModel vModel = (MainActivityViewModel) savedInstanceState.getSerializable(
