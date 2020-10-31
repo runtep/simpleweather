@@ -19,8 +19,8 @@ android {
         applicationId "org.roko.smplweather"
         minSdkVersion 15
         targetSdkVersion 30
-        versionCode 140
-        versionName "1.4"
+        versionCode 150
+        versionName "1.5"
     }
     buildTypes {
         release {
