@@ -36,8 +36,9 @@ import org.roko.smplweather.model.HourlyListViewItemModel;
 import org.roko.smplweather.model.HourlyDataWrapper;
 import org.roko.smplweather.model.HourlyForecast;
 import org.roko.smplweather.model.HourlyListViewItemDivider;
-import org.roko.smplweather.model.BasicListViewItemModelImpl;
 import org.roko.smplweather.model.MainActivityViewModel;
+import org.roko.smplweather.model.SuggestionListViewItemModel;
+import org.roko.smplweather.model.SuggestionListViewItemModelImpl;
 import org.roko.smplweather.model.SuggestionsModel;
 import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssItem;
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     private ViewPager mViewPager;
     private ForecastPagerAdapter mPagerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private BasicListViewAdapter mSuggestionsAdapter;
+    private BasicListViewAdapter<SuggestionListViewItemModel> mSuggestionsAdapter;
 
     private MainActivityViewModel model;
     private SuggestionsModel suggestionsModel;
@@ -168,13 +169,13 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
         });
 
-        mSuggestionsAdapter = new BasicListViewAdapter(this);
+        mSuggestionsAdapter = new BasicListViewAdapter<>(this);
         ListView mListViewSuggestions = findViewById(R.id.suggestionsView);
         mListViewSuggestions.setAdapter(mSuggestionsAdapter);
         mListViewSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                BasicListViewItemModelImpl item = (BasicListViewItemModelImpl) adapterView.getItemAtPosition(i);
+                SuggestionListViewItemModel item = (SuggestionListViewItemModel) adapterView.getItemAtPosition(i);
                 String cityId = item.get_id();
                 //
                 updateModelAndDisplaySuggestions(Collections.<City>emptyList());
@@ -316,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
             mSuggestionsAdapter.setItems(Collections.emptyList());
         } else {
-            List<BasicListViewItemModelImpl> items = convertToItemModel(cityList);
+            List<SuggestionListViewItemModel> items = convertToItemModel(cityList);
             if (suggestionsModel == null) {
                 suggestionsModel = new SuggestionsModel(items);
             } else {
@@ -738,9 +739,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         return model;
     }
 
-    private static List<BasicListViewItemModelImpl> convertToItemModel(List<City> cityList) {
+    private static List<SuggestionListViewItemModel> convertToItemModel(List<City> cityList) {
         return Stream.of(cityList)
-                .map(city -> new BasicListViewItemModelImpl(city.getId(), city.getTitle(), city.getPath()))
+                .map(city -> new SuggestionListViewItemModelImpl(city.getId(), city.getTitle(), city.getPath()))
                 .collect(Collectors.toList());
     }
 

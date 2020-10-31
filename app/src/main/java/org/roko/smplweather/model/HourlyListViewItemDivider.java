@@ -1,6 +1,7 @@
 package org.roko.smplweather.model;
 
 public class HourlyListViewItemDivider implements HourlyListViewItemModel {
+
     private String title;
 
     public HourlyListViewItemDivider(String title) {

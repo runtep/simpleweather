@@ -7,10 +7,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.roko.smplweather.R;
+import org.roko.smplweather.model.BasicListViewItemModel;
 import org.roko.smplweather.model.HourlyListViewItemContent;
 import org.roko.smplweather.model.HourlyListViewItemModel;
 import org.roko.smplweather.model.HourlyListViewItemDivider;
-import org.roko.smplweather.model.BasicListViewItemModelImpl;
 
 public class HourlyListViewAdapter extends AbstractListViewAdapter<HourlyListViewItemModel> {
 
@@ -52,10 +52,10 @@ public class HourlyListViewAdapter extends AbstractListViewAdapter<HourlyListVie
             tv.setText(m.getPrecipLevel());
             tv = convertView.findViewById(R.id.hiPrecipProbability);
             tv.setText(m.getPrecipProbability());
-        } else if (generic instanceof BasicListViewItemModelImpl) {
+        } else if (generic instanceof BasicListViewItemModel) {
             convertView = mLayoutInflater.inflate(R.layout.hourly_item, parent, false);
 
-            BasicListViewItemModelImpl item = (BasicListViewItemModelImpl) generic;
+            BasicListViewItemModel item = (BasicListViewItemModel) generic;
 
             TextView tvTitle = convertView.findViewById(R.id.itmTitle);
             tvTitle.setText(item.getTitle());

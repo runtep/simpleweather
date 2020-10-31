@@ -1,6 +1,7 @@
 package org.roko.smplweather.model;
 
 public class HourlyListViewItemContent implements HourlyListViewItemModel {
+
     private String time,
             temperature,
             description,
