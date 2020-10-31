@@ -112,8 +112,8 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
     private static class DetailsViewHolder
             extends HourlyForecastViewHolder<HourlyListViewItemContent> {
 
-        TextView tvTime, tvTemp, tvDesc, tvWind, tvHum, tvPrecip, tvPrecipProb;
-        ImageView oval;
+        final TextView tvTime, tvTemp, tvDesc, tvWind, tvHum, tvPrecip, tvPrecipProb;
+        final ImageView oval;
 
         DetailsViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -161,7 +161,7 @@ public class HourlyForecastRecyclerViewAdapter extends AbstractRecyclerViewAdapt
     private static class DividerViewHolder
             extends HourlyForecastViewHolder<HourlyListViewItemDivider> {
 
-        TextView tvDiv;
+        final TextView tvDiv;
 
         DividerViewHolder(@NonNull View itemView) {
             super(itemView);

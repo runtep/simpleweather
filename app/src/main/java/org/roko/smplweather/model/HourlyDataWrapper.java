@@ -13,7 +13,8 @@ import java.util.Map;
 import static org.roko.smplweather.Constants.ForecastFields.*;
 
 public class HourlyDataWrapper implements Serializable {
-    private Map<String, String> map = new HashMap<>(5);
+
+    private final Map<String, String> map = new HashMap<>(5);
 
     private static final List<String> ALLOWED_KEYS =
             Arrays.asList(TEMPERATURE_CELSIUS, WIND_DIR_NAME, WIND_SPEED_METERS, HUMIDITY_PERCENT,

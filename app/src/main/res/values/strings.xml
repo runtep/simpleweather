@@ -18,8 +18,6 @@
     <string name="tab_daily">Daily</string>
     <string name="tab_hourly">Hourly</string>
 
-    <string name="no_data">No data</string>
-
     <string name="url_main" translatable="false">https://meteoinfo.ru/</string>
     <string name="default_rss_id" translatable="false">28900</string>
     <string name="default_city_id" translatable="false">1834</string>

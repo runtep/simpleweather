@@ -5,4 +5,6 @@
     <dimen name="dateTitle">18sp</dimen>
     <dimen name="detailPrimary">16sp</dimen>
     <dimen name="detailSecondary">14sp</dimen>
+
+    <item name="maxPrecipitationLevelThresholdMm" type="dimen" format="float">20</item>
 </resources>

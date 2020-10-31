@@ -23,7 +23,7 @@ public class DailyForecastRecyclerViewAdapter extends BaseRecyclerViewAdapter
 
     private static class DailyForecastViewHolder extends BaseViewHolder<DailyListViewItemModel> {
 
-        private TextView tvTempDaily, tvTempNightly, tvWind, tvPressure, tvDivider;
+        private final TextView tvTempDaily, tvTempNightly, tvWind, tvPressure, tvDivider;
 
         private DailyForecastViewHolder(@NonNull View itemView) {
             super(itemView);

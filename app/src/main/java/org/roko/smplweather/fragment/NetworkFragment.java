@@ -67,7 +67,7 @@ public class NetworkFragment extends Fragment {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         callback = (RequestCallback<TaskResult>) context;
     }

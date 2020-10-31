@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
  */
 public class HeaderItemDecoration extends RecyclerView.ItemDecoration {
 
-    private StickyHeaderInterface mListener;
+    private final StickyHeaderInterface mListener;
     private View cachedHeader = null;
     private int cachedHeaderPosition = -1;
 
@@ -23,7 +23,7 @@ public class HeaderItemDecoration extends RecyclerView.ItemDecoration {
     }
 
     @Override
-    public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+    public void onDrawOver(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
         super.onDrawOver(c, parent, state);
 
         View topChild = parent.getChildAt(0);

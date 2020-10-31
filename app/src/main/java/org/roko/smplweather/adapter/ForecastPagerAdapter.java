@@ -8,6 +8,7 @@ import org.roko.smplweather.R;
 import org.roko.smplweather.fragment.DailyTabFragment;
 import org.roko.smplweather.fragment.HourlyTabFragment;
 import org.roko.smplweather.fragment.TabFragment;
+import org.roko.smplweather.model.ListViewItemModel;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,7 +18,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 public class ForecastPagerAdapter extends FragmentPagerAdapter {
 
-    private Resources resources;
+    private final Resources resources;
     private final int numOfTabs;
     private final SparseArray<Fragment> sparseArray;
 
@@ -28,6 +29,7 @@ public class ForecastPagerAdapter extends FragmentPagerAdapter {
         sparseArray = new SparseArray<>(2);
     }
 
+    @NonNull
     @Override
     public Fragment getItem(int i) {
         switch (i) {
@@ -36,7 +38,7 @@ public class ForecastPagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return new HourlyTabFragment();
         }
-        return null;
+        throw new IllegalArgumentException("There is no fragment under specified index: " + i);
     }
 
     @NonNull
@@ -57,7 +59,8 @@ public class ForecastPagerAdapter extends FragmentPagerAdapter {
         return sparseArray.size() == 0;
     }
 
-    public <T extends TabFragment> T getStoredFragment(int idx) {
+    @SuppressWarnings("unchecked")
+    public <T extends TabFragment<? extends ListViewItemModel>> T getStoredFragment(int idx) {
         return (T) sparseArray.get(idx);
     }
 

@@ -108,7 +108,8 @@
                 android:layout_height="15dp"
                 android:layout_gravity="center"
                 android:scaleType="centerInside"
-                android:src="@drawable/oval" />
+                android:src="@drawable/oval"
+                tools:ignore="ContentDescription" />
 
             <Space
                 android:layout_width="match_parent"

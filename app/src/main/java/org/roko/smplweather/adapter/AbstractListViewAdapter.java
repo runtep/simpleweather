@@ -23,10 +23,6 @@ abstract class AbstractListViewAdapter<T extends ListViewItemModel> extends Base
         this.items = items;
     }
 
-    public List<T> getItems() {
-        return this.items;
-    }
-
     @Override
     public int getCount() {
         return items.size();

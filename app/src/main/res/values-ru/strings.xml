@@ -10,7 +10,6 @@
     <string name="ui_mode_follow_system">Определяется системой</string>
     <string name="toast_no_content">Ничего не найдено</string>
     <string name="toast_network_issue">Сетевое соединение недоступно</string>
-    <string name="no_data">Нет данных</string>
     <string name="search_title">Найти город</string>
     <string name="search_hint">Город</string>
     <string name="toast_timeout_expired">Время ожидания истекло</string>

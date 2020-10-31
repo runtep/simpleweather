@@ -2,7 +2,7 @@ package org.roko.smplweather.model;
 
 public class HourlyListViewItemDivider implements HourlyListViewItemModel {
 
-    private String title;
+    private final String title;
 
     public HourlyListViewItemDivider(String title) {
         this.title = title;
@@ -10,9 +10,5 @@ public class HourlyListViewItemDivider implements HourlyListViewItemModel {
 
     public String getTitle() {
         return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 }

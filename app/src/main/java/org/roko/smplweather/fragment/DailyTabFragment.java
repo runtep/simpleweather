@@ -44,6 +44,7 @@ public class DailyTabFragment extends Fragment implements TabFragment<DailyListV
                 new FragmentState<>(mDailyForecastAdapter.getItems()));
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);

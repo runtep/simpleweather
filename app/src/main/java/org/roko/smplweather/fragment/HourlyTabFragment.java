@@ -45,6 +45,7 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
                 new FragmentState<>(mForecastAdapter.getItems()));
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);

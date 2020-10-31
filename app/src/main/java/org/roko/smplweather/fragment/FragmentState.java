@@ -6,7 +6,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class FragmentState<T extends ListViewItemModel> implements Serializable {
-    List<T> items;
+
+    final List<T> items;
 
     public FragmentState(List<T> items) {
         this.items = items;

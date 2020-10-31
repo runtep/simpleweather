@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class HourlyForecast {
-    private Map<Long, List<HourlyDataWrapper>> forecast;
+
+    private final Map<Long, List<HourlyDataWrapper>> forecast;
 
     public HourlyForecast(Map<Long, List<HourlyDataWrapper>> hourlyByDays) {
         this.forecast = hourlyByDays;

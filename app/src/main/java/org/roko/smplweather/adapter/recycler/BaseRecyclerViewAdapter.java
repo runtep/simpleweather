@@ -37,7 +37,7 @@ public abstract class BaseRecyclerViewAdapter
 
     static class BaseViewHolder<T extends BasicListViewItemModel> extends AbstractViewHolder<T> {
 
-        protected TextView tvTitle, tvDescription;
+        protected final TextView tvTitle, tvDescription;
 
         BaseViewHolder(@NonNull View itemView) {
             super(itemView);

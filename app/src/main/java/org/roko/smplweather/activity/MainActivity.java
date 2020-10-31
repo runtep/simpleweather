@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +60,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -71,37 +73,29 @@ import androidx.viewpager.widget.ViewPager;
 public class MainActivity extends AppCompatActivity implements RequestCallback<TaskResult> {
 
     private static final String DATE_SOURCE_PATTERN = "dd.MM.yyyy HH:mm'('z')'";
-    private static final String DATE_TARGET_PATTERN = "dd MMM HH:mm";
     private static final String DATE_PATTERN_ITEM_TITLE = "dd MMMM";
 
     private static final Locale LOCALE_RU = new Locale("ru");
 
-    private static Pattern PATTERN_FORECAST_DATE =
+    private static final Pattern PATTERN_FORECAST_DATE =
             Pattern.compile("(^\\D+)\\s(\\d{2}\\.\\d{2}\\.\\d{4})\\D+(\\d{2}\\:\\d{2}\\(*.+\\))");
 
-    private static Pattern PATTERN_FORECAST_TEMPS =
+    private static final Pattern PATTERN_FORECAST_TEMPS =
             Pattern.compile("Температура\\s+ночью\\s+(-?\\d+.+),\\s+дн[её]м\\s+(-?\\d+.+)[.\\n]?");
-    private static Pattern PATTERN_FORECAST_WIND = Pattern.compile("Ветер\\s+(.+),\\s+(.+)");
-    private static Pattern PATTERN_FORECAST_PRESS =
+    private static final Pattern PATTERN_FORECAST_WIND = Pattern.compile("Ветер\\s+(.+),\\s+(.+)");
+    private static final Pattern PATTERN_FORECAST_PRESS =
             Pattern.compile("давление\\s+ночью\\s+(-?\\d+)\\s+(.+),\\s+дн[её]м\\s+(-?\\d+)\\s+(.+)");
 
-    private static ThreadLocal<SimpleDateFormat> DF_SOURCE = new ThreadLocal<SimpleDateFormat>() {
+    private static final ThreadLocal<SimpleDateFormat> DF_SOURCE = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            SimpleDateFormat sdf = new SimpleDateFormat(DATE_SOURCE_PATTERN, Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_SOURCE_PATTERN, LOCALE_RU);
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sdf;
         }
     };
 
-    private static ThreadLocal<SimpleDateFormat> DF_TARGET = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat(DATE_TARGET_PATTERN, Locale.getDefault());
-        }
-    };
-
-    private static ThreadLocal<SimpleDateFormat> DF_LIST_ITEM_TITLE = new ThreadLocal<SimpleDateFormat>() {
+    private static final ThreadLocal<SimpleDateFormat> DF_LIST_ITEM_TITLE = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
             SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_ITEM_TITLE, LOCALE_RU);
@@ -110,21 +104,20 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     };
 
-    private static ThreadLocal<SimpleDateFormat> HH_MM = new ThreadLocal<SimpleDateFormat>() {
+    private static final ThreadLocal<SimpleDateFormat> HH_MM = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
             return new SimpleDateFormat("HH:mm", LOCALE_RU);
         }
     };
 
-    private static List<String> WIND_DIRECTIONS =
+    private static final List<String> WIND_DIRECTIONS =
             Collections.unmodifiableList(Arrays.asList("С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"));
 
     private NetworkFragment mNetworkFragment;
 
     private boolean isRequestRunning = false;
 
-    private ViewPager mViewPager;
     private ForecastPagerAdapter mPagerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private BasicListViewAdapter<SuggestionListViewItemModel> mSuggestionsAdapter;
@@ -145,10 +138,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             actionBar.setTitle("");
         }
 
-        mViewPager = findViewById(R.id.vPager);
+        ViewPager viewPager = findViewById(R.id.vPager);
         mPagerAdapter = new ForecastPagerAdapter(getSupportFragmentManager(), getResources());
-        mViewPager.setAdapter(mPagerAdapter);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        viewPager.setAdapter(mPagerAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {}
 
@@ -178,10 +171,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 SuggestionListViewItemModel item = (SuggestionListViewItemModel) adapterView.getItemAtPosition(i);
                 String cityId = item.get_id();
                 //
-                updateModelAndDisplaySuggestions(Collections.<City>emptyList());
+                updateModelAndDisplaySuggestions(Collections.emptyList());
                 collapseSearchView();
                 //
-                if (cityId != null && !cityId.isEmpty()) {
+                if (!TextUtils.isEmpty(cityId)) {
                     forceFetchRssIdThenBody(cityId);
                 }
             }
@@ -194,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if (this.model != null) {
             outState.putSerializable(Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL, model);
@@ -208,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        suggestionsModel = (SuggestionsModel) savedInstanceState.getSerializable(
+        this.suggestionsModel = (SuggestionsModel) savedInstanceState.getSerializable(
                 Constants.BUNDLE_KEY_SUGGESTIONS_MODEL);
         MainActivityViewModel vModel = (MainActivityViewModel) savedInstanceState.getSerializable(
                 Constants.BUNDLE_KEY_MAIN_ACTIVITY_VIEW_MODEL);
@@ -375,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             break;
             case TaskResult.Code.NULL_CONTENT: {
                 if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
-                    updateModelAndDisplaySuggestions(Collections.<City>emptyList());
+                    updateModelAndDisplaySuggestions(Collections.emptyList());
                 }
                 messageId = R.string.toast_no_content;
             }
@@ -388,6 +381,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 messageId = R.string.toast_timeout_expired;
             }
             break;
+            case TaskResult.Code.ERROR: // consecutive
             default:
                 messageId = R.string.toast_update_error;
         }
@@ -597,7 +591,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         for (RssItem rssItem : channel.getItems()) {
             String rssTitle = rssItem.getTitle();
             int pos = rssTitle.lastIndexOf(',');
-            String title = "";
+            String title;
             long itemDateUTC = -1;
             if (pos != -1) {
                 if (city.isEmpty()) {
@@ -843,7 +837,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 float valueMm = .0f;
                 try {
                     valueMm = Float.parseFloat(precipitationLevel);
-                    float maxValueThresholdMm = 20f;
+                    TypedValue resVal = new TypedValue();
+                    context.getResources().getValue(R.dimen.maxPrecipitationLevelThresholdMm, resVal, true);
+                    float maxValueThresholdMm = resVal.getFloat();
                     ovalDiameterVariationPercentage =
                             Math.min(valueMm, maxValueThresholdMm) * 100f / maxValueThresholdMm;
                 } catch (NumberFormatException ignored) {}

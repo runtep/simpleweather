@@ -28,7 +28,7 @@ final class RequestProcessor {
     private static final String PATTERN_EXTRACT_RSS_ID =
             ".?(<a +href=[^<]+</a>[^<]+){0,1}(<a +href=.?\"[^=]+=(\\d+).?\">RSS</a>).?";
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     ResponseWrapper processReadRssRequest(GenericTask.ApiService service, String queryString) {
         ResponseWrapper requestResult;
@@ -104,6 +104,7 @@ final class RequestProcessor {
         return requestResult;
     }
 
+    @SuppressWarnings("rawtypes")
     ResponseWrapper processGetRssIdByCityId(GenericTask.ApiService service, String query,
                                             ContentValues sessionStorage) {
         String cookieHeader = "";
@@ -184,7 +185,7 @@ final class RequestProcessor {
                 int com = resText.indexOf(',');
                 if (com != -1) {
                     String title = resText.substring(0, com);
-                    String path = resText.substring(com + 1, resText.length()).trim();
+                    String path = resText.substring(com + 1).trim();
                     city.setTitle(title);
                     city.setPath(path);
                 } else {

@@ -130,7 +130,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
                 if (result.content != null) {
                     taskResult = new TaskResult(TaskResult.Code.SUCCESS, result.content);
                 } else {
-                    taskResult = new TaskResult(TaskResult.Code.NULL_CONTENT);
+                    taskResult = TaskResult.nullContent();
                 }
             }
             callback.handleResult(taskCallContext.getAction(), taskResult, taskCallContext.getNextTask());
@@ -145,6 +145,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
         @POST("hmc-output/select/select_s2.php?q[_type]=query&id_lang=1")
         Call<SearchCityResponse> searchCityByName(@Query("q[term]") String name);
 
+        @SuppressWarnings("rawtypes")
         @FormUrlEncoded()
         @POST("hmc-output/forecast/tab_0.php")
         Call<List> getCityDetailsById(@Field("id_city") String cityId, @Header("Cookie") String cookie);

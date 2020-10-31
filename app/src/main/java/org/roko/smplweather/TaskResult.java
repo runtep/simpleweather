@@ -1,7 +1,8 @@
 package org.roko.smplweather;
 
+import java.util.Objects;
+
 import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
 
 public class TaskResult {
 
@@ -17,6 +18,10 @@ public class TaskResult {
     private String details;
     private Object content;
 
+    public static TaskResult nullContent() {
+        return new TaskResult(Code.NULL_CONTENT);
+    }
+
     public TaskResult(@Code int code) {
         this.code = code;
     }
@@ -26,10 +31,9 @@ public class TaskResult {
         this.details = message;
     }
 
-    public TaskResult(@Code int code,
-                      @NonNull Object content) {
+    public TaskResult(@Code int code, Object content) {
         this.code = code;
-        this.content = content;
+        this.content = Objects.requireNonNull(content);
     }
 
     public @Code int getCode() {
