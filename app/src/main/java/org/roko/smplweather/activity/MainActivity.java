@@ -67,6 +67,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.util.Pair;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private boolean isRequestRunning = false;
 
+    private ViewPager mViewPager;
     private ForecastPagerAdapter mPagerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private BasicListViewAdapter<SuggestionListViewItemModel> mSuggestionsAdapter;
@@ -139,10 +141,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             actionBar.setTitle("");
         }
 
-        ViewPager viewPager = findViewById(R.id.vPager);
+        mViewPager = findViewById(R.id.vPager);
         mPagerAdapter = new ForecastPagerAdapter(getSupportFragmentManager(), getResources());
-        viewPager.setAdapter(mPagerAdapter);
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager.setAdapter(mPagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {}
 
@@ -284,23 +286,30 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         mNetworkFragment.startTask(TaskAction.GET_RSS_ID_BY_CITY_ID, cityId, nextTask);
     }
 
+    private Pair<DailyTabFragment, HourlyTabFragment> getPagerFragments() {
+        DailyTabFragment f1;
+        HourlyTabFragment f2;
+        if (!mPagerAdapter.storageEmpty()) {
+            f1 = mPagerAdapter.getStoredFragment(0);
+            f2 = mPagerAdapter.getStoredFragment(1);
+        } else {
+            f1 = (DailyTabFragment) getSupportFragmentManager()
+                    .findFragmentByTag("android:switcher:" + R.id.vPager + ":" + 0);
+            f2 = (HourlyTabFragment) getSupportFragmentManager()
+                    .findFragmentByTag("android:switcher:" + R.id.vPager + ":" + 1);
+        }
+        return Pair.create(f1, f2);
+    }
+
     private void updateUIFromViewModel(MainActivityViewModel model) {
         if (model != null) {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.setTitle(model.getActionBarTitle());
             }
-            DailyTabFragment f1;
-            HourlyTabFragment f2;
-            if (!mPagerAdapter.storageEmpty()) {
-                f1 = mPagerAdapter.getStoredFragment(0);
-                f2 = mPagerAdapter.getStoredFragment(1);
-            } else {
-                f1 = (DailyTabFragment) getSupportFragmentManager()
-                        .findFragmentByTag("android:switcher:" + R.id.vPager + ":" + 0);
-                f2 = (HourlyTabFragment) getSupportFragmentManager()
-                        .findFragmentByTag("android:switcher:" + R.id.vPager + ":" + 1);
-            }
+            Pair<DailyTabFragment, HourlyTabFragment> pf = getPagerFragments();
+            DailyTabFragment f1 = pf.first;
+            HourlyTabFragment f2 = pf.second;
             f1.updateContent(toDailyViewModel(model.getDailyItems()));
             f2.updateContent(model.getHourlyViewModel());
         }
@@ -326,6 +335,17 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setEnabled(enabled);
         }
+    }
+
+    private void setSearchActive(boolean searchActive) {
+        LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
+        linearLayout.setVisibility(searchActive ? View.VISIBLE : View.GONE);
+
+        Pair<DailyTabFragment, HourlyTabFragment> pf = getPagerFragments();
+        pf.first.setEnabled(!searchActive);
+        pf.second.setEnabled(!searchActive);
+        mViewPager.setEnabled(!searchActive);
+        enableDisableSwipeRefresh(!searchActive);
     }
 
     // RequestCallback -----------------------------------------------------------------------------
@@ -477,25 +497,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                 if (isRequestRunning) {
                     return false;
                 }
-                LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
-                linearLayout.setVisibility(View.VISIBLE);
-
-                SwipeRefreshLayout srl = findViewById(R.id.swipe_container);
-                srl.setEnabled(false);
+                setSearchActive(true);
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem menuItem) {
-                LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
-                linearLayout.setVisibility(View.GONE);
-
-                SwipeRefreshLayout srl = findViewById(R.id.swipe_container);
-                srl.setEnabled(true);
-
-                mSuggestionsAdapter.setItems(Collections.emptyList());
-                mSuggestionsAdapter.notifyDataSetChanged();
-
+                setSearchActive(false);
+                updateModelAndDisplaySuggestions(Collections.emptyList());
                 return true;
             }
         });

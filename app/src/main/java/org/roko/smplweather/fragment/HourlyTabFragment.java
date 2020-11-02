@@ -64,4 +64,9 @@ public class HourlyTabFragment extends Fragment implements TabFragment<HourlyLis
             mForecastAdapter.notifyDataSetChanged();
         }
     }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        mContentHolder.setEnabled(enabled);
+    }
 }

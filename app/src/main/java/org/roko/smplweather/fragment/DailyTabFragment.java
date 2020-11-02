@@ -63,4 +63,9 @@ public class DailyTabFragment extends Fragment implements TabFragment<DailyListV
             mDailyForecastAdapter.notifyDataSetChanged();
         }
     }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        mContentHolder.setEnabled(enabled);
+    }
 }

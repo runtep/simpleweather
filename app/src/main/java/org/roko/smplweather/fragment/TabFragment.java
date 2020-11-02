@@ -7,4 +7,6 @@ import java.util.List;
 public interface TabFragment<T extends ListViewItemModel> {
 
     void updateContent(List<T> items);
+
+    void setEnabled(boolean enabled);
 }

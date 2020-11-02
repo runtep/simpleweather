@@ -10,12 +10,12 @@
         android:orientation="vertical"
         android:paddingLeft="6dp"
         android:paddingRight="6dp">
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        <org.roko.smplweather.widget.ExtSwipeRefreshLayout
             android:id="@+id/swipe_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
-                <androidx.viewpager.widget.ViewPager
+                <org.roko.smplweather.widget.ExtViewPager
                     android:id="@+id/vPager"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -26,8 +26,8 @@
                         android:layout_gravity="top"
                         android:paddingTop="4dp"
                         android:paddingBottom="4dp" />
-                </androidx.viewpager.widget.ViewPager>
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                </org.roko.smplweather.widget.ExtViewPager>
+        </org.roko.smplweather.widget.ExtSwipeRefreshLayout>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
