@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
     private MainActivityViewModel model;
     private SuggestionsModel suggestionsModel;
+    private boolean skipQueryTextChangeListener = false;
 
     private SearchView mSearchView;
     private MenuItem mSearchMenuItem;
@@ -170,12 +171,14 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 SuggestionListViewItemModel item = (SuggestionListViewItemModel) adapterView.getItemAtPosition(i);
                 String cityId = item.get_id();
-                //
-                updateModelAndDisplaySuggestions(Collections.emptyList());
-                collapseSearchView();
-                //
-                if (!TextUtils.isEmpty(cityId)) {
-                    forceFetchRssIdThenBody(cityId);
+                if (!Constants.EMPTY_CITY_ID.equals(cityId)) {
+                    //
+                    updateModelAndDisplaySuggestions(Collections.emptyList());
+                    collapseSearchView();
+                    //
+                    if (!TextUtils.isEmpty(cityId)) {
+                        forceFetchRssIdThenBody(cityId);
+                    }
                 }
             }
         });
@@ -303,21 +306,19 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     }
 
-    private void updateModelAndDisplaySuggestions(List<City> cityList) {
-        if (cityList.isEmpty()) {
+    private void updateModelAndDisplaySuggestions(List<SuggestionListViewItemModel> items) {
+        if (items.isEmpty()) {
             if (suggestionsModel != null) {
                 suggestionsModel.clear();
             }
-            mSuggestionsAdapter.setItems(Collections.emptyList());
         } else {
-            List<SuggestionListViewItemModel> items = convertToItemModel(cityList);
             if (suggestionsModel == null) {
                 suggestionsModel = new SuggestionsModel(items);
             } else {
                 suggestionsModel.setSuggestions(items);
             }
-            mSuggestionsAdapter.setItems(items);
         }
+        mSuggestionsAdapter.setItems(items);
         mSuggestionsAdapter.notifyDataSetChanged();
     }
 
@@ -346,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     }
                 } else if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
                     List<City> cityList = (List<City>) result.getContent();
-                    updateModelAndDisplaySuggestions(cityList);
+                    updateModelAndDisplaySuggestions(convertToItemModel(cityList));
                 } else if (TaskAction.GET_RSS_ID_BY_CITY_ID.equals(taskAction)) {
                     String rssId = (String) result.getContent();
                     storeSelected(rssId);
@@ -368,9 +369,12 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             break;
             case TaskResult.Code.NULL_CONTENT: {
                 if (TaskAction.SEARCH_CITY_BY_NAME.equals(taskAction)) {
-                    updateModelAndDisplaySuggestions(Collections.emptyList());
+                    SuggestionListViewItemModel emptyValue = new SuggestionListViewItemModelImpl(
+                            Constants.EMPTY_CITY_ID, getString(R.string.toast_no_content), "");
+                    updateModelAndDisplaySuggestions(Collections.singletonList(emptyValue));
+                } else {
+                    messageId = R.string.toast_no_content;
                 }
-                messageId = R.string.toast_no_content;
             }
             break;
             case TaskResult.Code.NETWORK_ISSUE: {
@@ -451,11 +455,17 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // TODO: should we limit request frequency by checking #isRequestRunning?
+                if (skipQueryTextChangeListener) {
+                    return true;
+                }
                 String query = newText.trim();
                 if (query.length() >= getResources().getInteger(R.integer.minSuggestLenThreshold)) {
                     isRequestRunning = true;
                     mNetworkFragment.startTask(TaskAction.SEARCH_CITY_BY_NAME, query);
+                } else {
+                    mNetworkFragment.interruptTask();
+                    isRequestRunning = false;
+                    updateModelAndDisplaySuggestions(Collections.emptyList());
                 }
                 return true;
             }
@@ -464,6 +474,9 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         mSearchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                if (isRequestRunning) {
+                    return false;
+                }
                 LinearLayout linearLayout = findViewById(R.id.suggestionsContainer);
                 linearLayout.setVisibility(View.VISIBLE);
 
@@ -487,16 +500,18 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             }
         });
 
-        boolean restore = suggestionsModel != null && !suggestionsModel.isEmpty();
-        if (restore) {
+        if (suggestionsModel != null && !suggestionsModel.isEmpty()) {
+            skipQueryTextChangeListener = true;
+
             mSearchView.setIconified(false);
             mSearchMenuItem.expandActionView();
 
             mSuggestionsAdapter.setItems(suggestionsModel.getSuggestions());
             mSuggestionsAdapter.notifyDataSetChanged();
 
-            mSearchView.setQuery(new String(suggestionsModel.getQuery()), false);
-            suggestionsModel.clear();
+            mSearchView.setQuery(suggestionsModel.getQuery(), false);
+
+            skipQueryTextChangeListener = false;
         }
 
         return true;

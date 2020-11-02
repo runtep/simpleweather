@@ -117,7 +117,7 @@ public class GenericTask extends AsyncTask<String, Void, ResponseWrapper> {
 
     @Override
     protected void onPostExecute(@Nullable ResponseWrapper result) {
-        if (result != null && callback != null) {
+        if (result != null && callback != null && !isCancelled()) {
             TaskResult taskResult;
             if (result.exception != null) {
                 if (result.exception instanceof SocketTimeoutException) {

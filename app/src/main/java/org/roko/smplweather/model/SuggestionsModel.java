@@ -28,7 +28,7 @@ public class SuggestionsModel implements Serializable {
     }
 
     public boolean isEmpty() {
-        return _isQueryEmpty() || _isSuggestionsEmpty();
+        return _isQueryEmpty() && _isSuggestionsEmpty();
     }
 
     private boolean _isSuggestionsEmpty() {

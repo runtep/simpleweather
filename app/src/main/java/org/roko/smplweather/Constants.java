@@ -23,6 +23,8 @@ public final class Constants {
     public static final String RU_TODAY = "Сегодня";
     public static final String RU_TOMORROW = "Завтра";
 
+    public static final String EMPTY_CITY_ID = "emptyCityId";
+
     public static class ForecastFields {
         public static final String DATE_MILLIS = "dateMs";
         public static final String TEMPERATURE_CELSIUS = "tempValCelsius";
