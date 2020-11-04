@@ -6,6 +6,16 @@
         <item>disserboard</item>
         <item>konkurs</item>
     </string-array>
+    <string-array name="windDirectionAbbreviations">
+        <item>С</item>
+        <item>СВ</item>
+        <item>В</item>
+        <item>ЮВ</item>
+        <item>Ю</item>
+        <item>ЮЗ</item>
+        <item>З</item>
+        <item>СЗ</item>
+    </string-array>
     <string-array name="windDirectionArrows">
         <item name="n">&#x2193;</item>
         <item name="ne">&#x2199;</item>

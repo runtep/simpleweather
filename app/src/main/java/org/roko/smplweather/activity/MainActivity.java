@@ -112,9 +112,6 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         }
     };
 
-    private static final List<String> WIND_DIRECTIONS =
-            Collections.unmodifiableList(Arrays.asList("С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"));
-
     private NetworkFragment mNetworkFragment;
 
     private boolean isRequestRunning = false;
@@ -696,18 +693,21 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
                     String dirFull = m.group(1);
                     String velocity = m.group(2);
 
-                    String dirShort = "";
+                    String dirAbbreviation;
                     if (dirFull.indexOf('-') != -1) {
-                        String[] parts = dirFull.split("-");
-                        for (String part : parts) {
-                            dirShort += Character.toUpperCase(part.charAt(0));
-                        }
+                        dirAbbreviation = Stream.of(dirFull.split("-"))
+                                .map(part -> part.substring(0, 1).toUpperCase())
+                                .collect(Collectors.joining());
                     } else {
-                        dirShort += Character.toUpperCase(dirFull.charAt(0));
+                        dirAbbreviation = dirFull.substring(0, 1).toUpperCase();
                     }
-                    String arrow = windDirectionArrow(context.getResources()
-                            .getStringArray(R.array.windDirectionArrows), dirShort);
-                    forecastItem.setWind(dirShort + " " + arrow + " " + velocity);
+                    String arrow = windDirectionArrow(
+                            context.getResources()
+                                    .getStringArray(R.array.windDirectionAbbreviations),
+                            context.getResources()
+                                    .getStringArray(R.array.windDirectionArrows),
+                            dirAbbreviation);
+                    forecastItem.setWind(dirAbbreviation + " " + arrow + " " + velocity);
                 } else {
                     forecastDescription.append("\n").append(windDesc);
                 }
@@ -843,7 +843,10 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
             if (!TextUtils.isEmpty(windSpeed)) {
                 if (!"0".equals(windSpeed.trim())) {
                     String direction = hdw.getWindDirName().replace("-", "");
-                    String arrow = windDirectionArrow(context.getResources()
+                    String arrow = windDirectionArrow(
+                            context.getResources()
+                                    .getStringArray(R.array.windDirectionAbbreviations),
+                            context.getResources()
                             .getStringArray(R.array.windDirectionArrows), direction);
                     windInfo.append("Ветер ").append(direction).append(" ").append(arrow).append(" ").
                             append(hdw.getWindSpeedMeters()).append(" м/с");
@@ -930,14 +933,15 @@ public class MainActivity extends AppCompatActivity implements RequestCallback<T
         return res;
     }
 
-    private static String windDirectionArrow(String[] arrayOfArrows, String windDirectionString) {
-        if (WIND_DIRECTIONS.size() != arrayOfArrows.length) {
-            throw new IllegalArgumentException("Inconsistent wind directions data");
+    private static String windDirectionArrow(String[] directionAbbreviations, String[] directionArrows,
+                                             String abbreviation) {
+        if (directionAbbreviations.length != directionArrows.length) {
+            throw new IllegalArgumentException("Wind directions/directionAbbreviations arrays length mismatch");
         }
-        int index = WIND_DIRECTIONS.indexOf(windDirectionString);
+        int index = Arrays.asList(directionAbbreviations).indexOf(abbreviation);
         if (index != -1) {
-            return arrayOfArrows[index];
+            return directionArrows[index];
         }
-        return windDirectionString;
+        return "";
     }
 }
