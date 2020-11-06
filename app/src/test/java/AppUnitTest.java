@@ -14,6 +14,7 @@ import org.roko.smplweather.model.MainActivityViewModel;
 import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssItem;
 import org.roko.smplweather.utils.CalendarHelper;
+import org.roko.smplweather.utils.ConvertingHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ public class AppUnitTest {
         setDate(startPoint, 2018, Calendar.OCTOBER, 2);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
-        MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
+        MainActivityViewModel model = ConvertingHelper.convertToViewModel(CONTEXT, channel, startPoint);
         Assert.assertTrue("Failed to parse 'last update'", model.getRssProvidedUTC() != -1);
 
         checkDateOrder(model.getDailyItems());
@@ -81,14 +82,14 @@ public class AppUnitTest {
         setDate(startPoint, 2018, Calendar.DECEMBER, 29);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
-        MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
+        MainActivityViewModel model = ConvertingHelper.convertToViewModel(CONTEXT, channel, startPoint);
         checkDateOrder(model.getDailyItems());
 
         System.out.println("Current date is after new year");
         setDate(startPoint, 2019, Calendar.JANUARY, 2);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
-        model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
+        model = ConvertingHelper.convertToViewModel(CONTEXT, channel, startPoint);
         checkDateOrder(model.getDailyItems());
     }
 
@@ -103,10 +104,10 @@ public class AppUnitTest {
         setDate(startPoint, 2018, Calendar.DECEMBER, 31);
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
-        MainActivityViewModel model = MainActivity.convertToViewModel(CONTEXT, channel, startPoint);
+        MainActivityViewModel model = ConvertingHelper.convertToViewModel(CONTEXT, channel, startPoint);
 
         setDate(startPoint, 2018, Calendar.DECEMBER, 31); // reset
-        List<DailyListViewItemModel> lvItems = MainActivity.convert(model.getDailyItems(), startPoint);
+        List<DailyListViewItemModel> lvItems = ConvertingHelper.convert(model.getDailyItems(), startPoint);
 
         for (DailyListViewItemModel lvItem : lvItems) {
             System.out.println(lvItem.getTitle());

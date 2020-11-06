@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class MainActivityViewModel implements Serializable {
+
     private String actionBarTitle;
     private List<HourlyListViewItemModel> hourlyViewModel;
     private List<DailyForecastItem> dailyItems;

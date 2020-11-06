@@ -22,9 +22,9 @@ import java.util.regex.Pattern;
 import static org.roko.smplweather.Constants.ForecastFields.*;
 import static org.roko.smplweather.Constants.PayloadArrayNames.*;
 
-public class DailyForecastParser {
+public class HourlyForecastParser {
 
-    private DailyForecastParser() {
+    private HourlyForecastParser() {
     }
 
     public static HourlyForecast parse(String payload) {

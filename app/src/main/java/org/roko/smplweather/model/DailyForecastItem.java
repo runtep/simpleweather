@@ -3,6 +3,7 @@ package org.roko.smplweather.model;
 import java.io.Serializable;
 
 public class DailyForecastItem implements Serializable {
+
     private String title, description; // mandatory fields
     private long dateTimeUTC = -1;
     private String tempDaily, tempNightly, wind, pressure; // extra fields

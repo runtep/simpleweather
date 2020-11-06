@@ -8,7 +8,7 @@ import org.roko.smplweather.model.json.Result;
 import org.roko.smplweather.model.json.SearchCityResponse;
 import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssResponse;
-import org.roko.smplweather.utils.DailyForecastParser;
+import org.roko.smplweather.utils.HourlyForecastParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -149,7 +149,7 @@ final class RequestProcessor {
             HourlyForecast result = null;
             if (response.isSuccessful()) {
                 String payload = response.body();
-                result = DailyForecastParser.parse(payload);
+                result = HourlyForecastParser.parse(payload);
             }
             responseWrapper = new ResponseWrapper(result);
         } catch (Exception e) {
