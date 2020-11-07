@@ -21,11 +21,11 @@ public class DateTime extends DateOnly {
                 dateTimeString.substring(10, 12));
     }
 
-    public boolean before(DateTime that) {
+    public boolean isDayBefore(DateTime that) {
         return this.year < that.year ||
                 this.year == that.year &&
-                        (this.month < that.month ||
-                                this.month == that.month && this.dayOfMonth < that.dayOfMonth);
+                        (this.monthFromOne < that.monthFromOne ||
+                                this.monthFromOne == that.monthFromOne && this.dayOfMonth < that.dayOfMonth);
     }
 
     public String dateOnlyString() {

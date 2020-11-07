@@ -1,13 +1,10 @@
 import android.content.Context;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
-import org.roko.smplweather.activity.MainActivity;
 import org.roko.smplweather.model.DailyForecastItem;
 import org.roko.smplweather.model.DailyListViewItemModel;
 import org.roko.smplweather.model.MainActivityViewModel;
@@ -15,6 +12,7 @@ import org.roko.smplweather.model.xml.RssChannel;
 import org.roko.smplweather.model.xml.RssItem;
 import org.roko.smplweather.utils.CalendarHelper;
 import org.roko.smplweather.utils.ConvertingHelper;
+import org.roko.smplweather.utils.DateTime;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,8 +28,8 @@ public class AppUnitTest {
     private static final String DESC = "stub";
     private static final String SOURCE = "stub, stub 03.10.2018 в 10:03(UTC)";
 
-    private static TimeZone TZ_UTC = TimeZone.getTimeZone("UTC");
-    private static Locale LOCALE_RU = new Locale("ru");
+    private static final TimeZone TZ_UTC = TimeZone.getTimeZone("UTC");
+    private static final Locale LOCALE_RU = new Locale("ru");
 
     private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = new ThreadLocal<SimpleDateFormat>() {
         @Override
@@ -105,17 +103,34 @@ public class AppUnitTest {
         System.out.println("\"today\"=" + DATE_FORMAT.get().format(startPoint.getTime()));
 
         MainActivityViewModel model = ConvertingHelper.convertToViewModel(CONTEXT, channel, startPoint);
+        checkDateOrder(model.getDailyItems());
 
-        setDate(startPoint, 2018, Calendar.DECEMBER, 31); // reset
-        List<DailyListViewItemModel> lvItems = ConvertingHelper.convert(model.getDailyItems(), startPoint);
+        List<DailyListViewItemModel> lvItems = ConvertingHelper.toDailyViewModel(model.getDailyItems());
+
+        setDate(supplier, 2018, Calendar.DECEMBER, 30); // reset
 
         for (DailyListViewItemModel lvItem : lvItems) {
             System.out.println(lvItem.getTitle());
+            String lcTitle = lvItem.getTitle().toLowerCase(LOCALE_RU);
+            String expected = supplier.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
+            Assert.assertTrue(lcTitle.startsWith(expected));
+            supplier.add(Calendar.DAY_OF_YEAR, 1);
         }
+    }
 
-        Assert.assertEquals(lvItems.size(), 2);
-        Assert.assertTrue(lvItems.get(0).getTitle().startsWith(Constants.RU_TODAY));
-        Assert.assertTrue(lvItems.get(1).getTitle().startsWith(Constants.RU_TOMORROW));
+    @Test
+    public void dateTimePOJOTest() {
+        DateTime dtA = new DateTime("201912010000");
+        DateTime dtB = new DateTime("202001010000");
+        Assert.assertTrue(dtA.isDayBefore(dtB));
+
+        dtA = new DateTime("202011010000");
+        dtB = new DateTime("202011070000");
+        Assert.assertTrue(dtA.isDayBefore(dtB));
+
+        dtA = new DateTime("202011071000");
+        dtB = new DateTime("202011071200");
+        Assert.assertFalse(dtA.isDayBefore(dtB));
     }
 
     private static RssChannel provide(Calendar supplier, int itemCount) {

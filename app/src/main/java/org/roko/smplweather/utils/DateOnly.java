@@ -3,14 +3,14 @@ package org.roko.smplweather.utils;
 public class DateOnly {
 
     public final String sYear, sMonth, sDayOfMonth;
-    public final int year, /** 1-based */month, dayOfMonth;
+    public final int year, monthFromOne, dayOfMonth;
 
     public DateOnly(String sYear, String sMonth, String sDayOfMonth) {
         this.sYear = sYear;
         this.sMonth = sMonth;
         this.sDayOfMonth = sDayOfMonth;
         this.year = Integer.parseInt(sYear);
-        this.month = Integer.parseInt(sMonth);
+        this.monthFromOne = Integer.parseInt(sMonth);
         this.dayOfMonth = Integer.parseInt(sDayOfMonth);
     }
 

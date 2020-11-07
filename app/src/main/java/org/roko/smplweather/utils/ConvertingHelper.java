@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +36,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConvertingHelper {
+public final class ConvertingHelper {
 
     private static final String DATE_PATTERN_FORECAST_DATE = "dd.MM.yyyy HH:mm'('z')'";
     private static final String DATE_PATTERN_DAY_WITH_MONTH_NAME = "dd MMMM";
@@ -66,15 +65,6 @@ public class ConvertingHelper {
         @Override
         protected SimpleDateFormat initialValue() {
             SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_DAY_WITH_MONTH_NAME, LOCALE_RU);
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-            return sdf;
-        }
-    };
-
-    private static final ThreadLocal<SimpleDateFormat> HH_MM = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", LOCALE_RU);
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sdf;
         }
@@ -287,12 +277,6 @@ public class ConvertingHelper {
         return res;
     }
 
-    @Deprecated
-    public static List<DailyListViewItemModel> convert(List<DailyForecastItem> items,
-                                                       Calendar calToday) {
-        return Collections.emptyList();
-    }
-
     private static String windDirectionArrow(String[] directionAbbreviations, String[] directionArrows,
                                              String abbreviation) {
         if (directionAbbreviations.length != directionArrows.length) {
@@ -317,7 +301,7 @@ public class ConvertingHelper {
         // dateTime of each entry is assumed to be in target city`s timezone
         for (HourlyDataForDay dayItem : hf) {
             DateOnly d = dayItem.day;
-            dateOfEntry.set(d.year, d.month - 1, d.dayOfMonth);
+            dateOfEntry.set(d.year, d.monthFromOne - 1, d.dayOfMonth);
 
             String prefix;
             prefix = dateOfEntry.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
@@ -339,7 +323,7 @@ public class ConvertingHelper {
         for (HourlyDataWrapper hdw : items) {
             HourlyListViewItemContent vm = new HourlyListViewItemContent();
             // Time
-            DateTime dt = new DateTime(hdw.getDateString());
+            DateTime dt = new DateTime(hdw.getDateTimeString());
             String time = dt.sHour24 + ":" + dt.sMinute;
             vm.setTime(time);
             // Temperature

@@ -20,13 +20,10 @@ public final class Constants {
     /** Describes what has triggered the task (for informational purpose) */
     public static final String BUNDLE_KEY_TRIGGER = "trigger";
 
-    public static final String RU_TODAY = "Сегодня";
-    public static final String RU_TOMORROW = "Завтра";
-
     public static final String EMPTY_CITY_ID = "emptyCityId";
 
     public static class ForecastFields {
-        public static final String DATE_STRING = "dateStr";
+        public static final String DATETIME_STRING = "dateTimeStr";
         public static final String TEMPERATURE_CELSIUS = "tempValCelsius";
         public static final String WIND_DIR_NAME = "windDirName";
         public static final String WIND_SPEED_METERS = "windSpeedMeters";

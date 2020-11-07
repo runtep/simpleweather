@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import static org.roko.smplweather.Constants.ForecastFields.*;
 import static org.roko.smplweather.Constants.PayloadArrayNames.*;
 
-public class HourlyForecastParser {
+public final class HourlyForecastParser {
 
     private HourlyForecastParser() {
     }
@@ -50,10 +50,10 @@ public class HourlyForecastParser {
         // ]
         Map<String, Map<String, String>> target = Stream.of(temperatureValues).collect(
             Collectors.toMap(
-                (Map<String, String> e) -> e.get(DATE_STRING),
+                (Map<String, String> e) -> e.get(DATETIME_STRING),
                 (Map<String, String> e) -> {
                     Map<String, String> forecastStub = new HashMap<>();
-                    forecastStub.put(DATE_STRING, e.get(DATE_STRING));
+                    forecastStub.put(DATETIME_STRING, e.get(DATETIME_STRING));
                     forecastStub.put(TEMPERATURE_CELSIUS, e.get(TEMPERATURE_CELSIUS));
                     return forecastStub;
                 },
@@ -115,7 +115,7 @@ public class HourlyForecastParser {
             if (dtPrevItem == null) {
                 dtPrevItem = new DateTime(key);
             } else {
-                if (dtPrevItem.before(dtCurrentItem)) {
+                if (dtPrevItem.isDayBefore(dtCurrentItem)) {
                     // dtPrevItem holds dateTime of a last item within a single day,
                     // so we take it's date-only value (crop time) and use as a key in result map
                     map.put(dtPrevItem.dateOnlyString(), membersOfOneDay);
@@ -136,8 +136,8 @@ public class HourlyForecastParser {
                                   List<Map<String, String>> list,
                                   String targetFieldName) {
         Stream.of(list).forEach((Map<String, String> e) -> {
-            String dateStr = e.get(DATE_STRING);
-            Map<String, String> forecastStub = map.get(dateStr);
+            String dateTimeStr = e.get(DATETIME_STRING);
+            Map<String, String> forecastStub = map.get(dateTimeStr);
             if (forecastStub != null) {
                 forecastStub.put(targetFieldName, e.get(targetFieldName));
             }
@@ -169,21 +169,21 @@ public class HourlyForecastParser {
                 k = xyMatcher.end();
 
                 Matcher dateMatcher = pJSDate.matcher(xValue);
-                String dateStr = "";
+                String dateTimeStr = "";
                 if (dateMatcher.find()) {
                     int year = Integer.parseInt(dateMatcher.group(1));
                     int mon = Integer.parseInt(dateMatcher.group(2)); // zero-based
                     int day = Integer.parseInt(dateMatcher.group(3));
                     int hour24 = Integer.parseInt(dateMatcher.group(4));
 
-                    dateStr = String.format("%d%s%s%s00", year,
+                    dateTimeStr = String.format("%d%s%s%s00", year,
                             withLeadZero(mon + 1),
                             withLeadZero(day),
                             withLeadZero(hour24));
                 }
 
                 Map<String, String> map = new HashMap<>(2);
-                map.put(DATE_STRING, dateStr);
+                map.put(DATETIME_STRING, dateTimeStr);
                 map.put(valueAlias, targetValue);
 
                 resultItems.add(map);

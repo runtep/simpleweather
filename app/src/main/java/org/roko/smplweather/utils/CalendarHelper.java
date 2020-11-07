@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 public final class CalendarHelper {
+
     private CalendarHelper() {}
 
     public static Calendar provideFor(TimeZone tz) {

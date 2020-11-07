@@ -16,7 +16,7 @@ public class HourlyDataWrapper implements Serializable {
 
     private static final List<String> ALLOWED_KEYS =
             Arrays.asList(TEMPERATURE_CELSIUS, WIND_DIR_NAME, WIND_SPEED_METERS, HUMIDITY_PERCENT,
-                    PRECIP_MILLIMETERS, PRECIP_PROBABILITY_PERCENT, DATE_STRING, FORECAST_DESCR);
+                    PRECIP_MILLIMETERS, PRECIP_PROBABILITY_PERCENT, DATETIME_STRING, FORECAST_DESCR);
 
     public HourlyDataWrapper() {
     }
@@ -35,13 +35,8 @@ public class HourlyDataWrapper implements Serializable {
         });
     }
 
-    @Deprecated
-    public Long getDateMillis() {
-        return -1L;
-    }
-
-    public String getDateString() {
-        return map.get(DATE_STRING);
+    public String getDateTimeString() {
+        return map.get(DATETIME_STRING);
     }
 
     public String getTempCelsius() {
