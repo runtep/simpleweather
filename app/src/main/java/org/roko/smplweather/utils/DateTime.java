@@ -1,20 +1,16 @@
 package org.roko.smplweather.utils;
 
-public class DateTime {
+public class DateTime extends DateOnly {
 
-    public final String sYear, sMonth, sDayOfMonth, sHour24, sMinute;
-    public final int year, month, dayOfMonth;
+    public final String sHour24, sMinute;
+    public final int hour24, minute;
 
     public DateTime(String sYear, String sMonth, String sDayOfMonth, String sHour24, String sMinute) {
-        this.sYear = sYear;
-        this.sMonth = sMonth;
-        this.sDayOfMonth = sDayOfMonth;
+        super(sYear, sMonth, sDayOfMonth);
         this.sHour24 = sHour24;
         this.sMinute = sMinute;
-        //
-        this.year = Integer.parseInt(sYear);
-        this.month = Integer.parseInt(sMonth);
-        this.dayOfMonth = Integer.parseInt(sDayOfMonth);
+        this.hour24 = Integer.parseInt(sHour24);
+        this.minute = Integer.parseInt(sMinute);
     }
 
     public DateTime(String dateTimeString) {

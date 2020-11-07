@@ -1,14 +1,16 @@
 package org.roko.smplweather.model;
 
+import org.roko.smplweather.utils.DateOnly;
+
 import java.util.List;
 
 public class HourlyDataForDay {
 
-    public final String dayStr;
+    public final DateOnly day;
     public final List<HourlyDataWrapper> hourlyData;
 
-    public HourlyDataForDay(String dayStr, List<HourlyDataWrapper> hourlyData) {
-        this.dayStr = dayStr;
+    public HourlyDataForDay(DateOnly day, List<HourlyDataWrapper> hourlyData) {
+        this.day = day;
         this.hourlyData = hourlyData;
     }
 }

@@ -7,7 +7,6 @@ import android.util.TypedValue;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
 
-import org.roko.smplweather.Constants;
 import org.roko.smplweather.R;
 import org.roko.smplweather.model.City;
 import org.roko.smplweather.model.DailyForecastItem;
@@ -30,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +74,9 @@ public class ConvertingHelper {
     private static final ThreadLocal<SimpleDateFormat> HH_MM = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("HH:mm", LOCALE_RU);
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", LOCALE_RU);
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdf;
         }
     };
 
@@ -253,32 +255,20 @@ public class ConvertingHelper {
     // ---------------------------------------------------------------------------------------------
 
     public static List<DailyListViewItemModel> toDailyViewModel(List<DailyForecastItem> items) {
-        return convert(items, CalendarHelper.provideFor(TimeZone.getDefault()));
-    }
-
-    public static List<DailyListViewItemModel> convert(List<DailyForecastItem> items,
-                                                       Calendar calToday) {
         List<DailyListViewItemModel> res = new ArrayList<>(items.size());
 
         // use utc calendar for items since forecast is already tied to location
-        Calendar calItem = CalendarHelper.provideFor(TimeZone.getTimeZone("UTC"));
+        Calendar calItem = CalendarHelper.provideForUTC();
 
-        int todayIdx = -1, idx = 0;
         for (DailyForecastItem item : items) {
             String title;
             long itemDateUTC = item.getDateTimeUTC();
             if (itemDateUTC != -1) {
                 calItem.setTimeInMillis(itemDateUTC);
                 String prefix;
-                if (CalendarHelper.ifSameDay(calToday, calItem)) {
-                    prefix = Constants.RU_TODAY;
-                    todayIdx = idx;
-                } else if (CalendarHelper.ifTomorrow(calToday, calItem)) {
-                    prefix = Constants.RU_TOMORROW;
-                } else {
-                    prefix = calItem.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
-                    prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
-                }
+                prefix = calItem.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
+                prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
+
                 title = prefix + ", " + item.getTitle();
             } else {
                 title = item.getTitle();
@@ -292,15 +282,15 @@ public class ConvertingHelper {
             vm.setPressure(item.getPressure());
 
             res.add(vm);
-
-            idx++;
-        }
-
-        if (todayIdx > 0) {
-            res = new ArrayList<>(res.subList(todayIdx, res.size()));
         }
 
         return res;
+    }
+
+    @Deprecated
+    public static List<DailyListViewItemModel> convert(List<DailyForecastItem> items,
+                                                       Calendar calToday) {
+        return Collections.emptyList();
     }
 
     private static String windDirectionArrow(String[] directionAbbreviations, String[] directionArrows,
@@ -321,38 +311,22 @@ public class ConvertingHelper {
                                                                   HourlyForecast hf) {
         List<HourlyListViewItemModel> hourlyListViewItemModels = new ArrayList<>();
 
-        // Obtain wall-time of user`s device ported into UTC. This trick is needed
-        // since forecast is provided in local time of considered city but stored as UTC
-        Calendar local = CalendarHelper.provideFor(TimeZone.getDefault());
-        Calendar dtNow = CalendarHelper.provideForUTC();
-        dtNow.set(Calendar.YEAR, local.get(Calendar.YEAR));
-        dtNow.set(Calendar.MONTH, local.get(Calendar.MONTH));
-        dtNow.set(Calendar.DAY_OF_YEAR, local.get(Calendar.DAY_OF_YEAR));
-        dtNow.set(Calendar.HOUR_OF_DAY, local.get(Calendar.HOUR_OF_DAY));
-        dtNow.set(Calendar.MINUTE, 0);
-        dtNow.set(Calendar.SECOND, 0);
-        dtNow.set(Calendar.MILLISECOND, 0);
+        Calendar dateOfEntry = CalendarHelper.provideForUTC();
+        CalendarHelper.cropTime(dateOfEntry);
 
-        // dateTime of each entry is assumed to be in target city`s timezone, but represented as UTC
-        Calendar dtOfEntry = CalendarHelper.provideForUTC();
-        for (HourlyDataForDay day : hf) {
-            dtOfEntry.setTimeInMillis(/*day.dayStr*/0L); // TODO: TDB
-            if (CalendarHelper.ifPrecedingDay(dtNow, dtOfEntry)) {
-                continue;
-            }
+        // dateTime of each entry is assumed to be in target city`s timezone
+        for (HourlyDataForDay dayItem : hf) {
+            DateOnly d = dayItem.day;
+            dateOfEntry.set(d.year, d.month - 1, d.dayOfMonth);
+
             String prefix;
-            if (CalendarHelper.ifSameDay(dtNow, dtOfEntry)) {
-                prefix = Constants.RU_TODAY;
-            } else if (CalendarHelper.ifTomorrow(dtNow, dtOfEntry)) {
-                prefix = Constants.RU_TOMORROW;
-            } else {
-                prefix = dtOfEntry.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
-                prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
-            }
-            String title = prefix + ", " + DF_DAY_WITH_MONTH_NAME.get().format(dtOfEntry.getTime());
+            prefix = dateOfEntry.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, LOCALE_RU);
+            prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
+
+            String title = prefix + ", " + DF_DAY_WITH_MONTH_NAME.get().format(dateOfEntry.getTime());
 
             hourlyListViewItemModels.add(new HourlyListViewItemDivider(title));
-            hourlyListViewItemModels.addAll(toHourlyContent(context, day.hourlyData));
+            hourlyListViewItemModels.addAll(toHourlyContent(context, dayItem.hourlyData));
         }
 
         return hourlyListViewItemModels;
@@ -361,16 +335,12 @@ public class ConvertingHelper {
     private static List<HourlyListViewItemContent> toHourlyContent(Context context,
                                                                    List<HourlyDataWrapper> items) {
         List<HourlyListViewItemContent> res = new ArrayList<>(items.size());
-        HH_MM.get().setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (HourlyDataWrapper hdw : items) {
             HourlyListViewItemContent vm = new HourlyListViewItemContent();
             // Time
-            Long dateMillis = hdw.getDateMillis();
-            String time = "";
-            if (dateMillis != -1) {
-                time = HH_MM.get().format(new Date(dateMillis));
-            }
+            DateTime dt = new DateTime(hdw.getDateString());
+            String time = dt.sHour24 + ":" + dt.sMinute;
             vm.setTime(time);
             // Temperature
             String tempCelsius = hdw.getTempCelsius();
