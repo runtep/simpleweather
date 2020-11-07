@@ -4,11 +4,11 @@ import java.util.List;
 
 public class HourlyDataForDay {
 
-    public final long dayAsMillis;
+    public final String dayStr;
     public final List<HourlyDataWrapper> hourlyData;
 
-    public HourlyDataForDay(long dayAsMillis, List<HourlyDataWrapper> hourlyData) {
-        this.dayAsMillis = dayAsMillis;
+    public HourlyDataForDay(String dayStr, List<HourlyDataWrapper> hourlyData) {
+        this.dayStr = dayStr;
         this.hourlyData = hourlyData;
     }
 }

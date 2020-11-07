@@ -1,7 +1,5 @@
 package org.roko.smplweather.model;
 
-import android.text.TextUtils;
-
 import com.annimon.stream.Stream;
 
 import java.io.Serializable;
@@ -18,7 +16,7 @@ public class HourlyDataWrapper implements Serializable {
 
     private static final List<String> ALLOWED_KEYS =
             Arrays.asList(TEMPERATURE_CELSIUS, WIND_DIR_NAME, WIND_SPEED_METERS, HUMIDITY_PERCENT,
-                    PRECIP_MILLIMETERS, PRECIP_PROBABILITY_PERCENT, DATE_MILLIS, FORECAST_DESCR);
+                    PRECIP_MILLIMETERS, PRECIP_PROBABILITY_PERCENT, DATE_STRING, FORECAST_DESCR);
 
     public HourlyDataWrapper() {
     }
@@ -37,12 +35,13 @@ public class HourlyDataWrapper implements Serializable {
         });
     }
 
+    @Deprecated
     public Long getDateMillis() {
-        String d = map.get(DATE_MILLIS);
-        if (!TextUtils.isEmpty(d)) {
-            return Long.parseLong(d);
-        }
         return -1L;
+    }
+
+    public String getDateString() {
+        return map.get(DATE_STRING);
     }
 
     public String getTempCelsius() {

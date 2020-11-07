@@ -9,9 +9,9 @@ import java.util.Set;
 
 public class HourlyForecast implements Iterable<HourlyDataForDay> {
 
-    private final Map<Long, List<HourlyDataWrapper>> forecast;
+    private final Map<String, List<HourlyDataWrapper>> forecast;
 
-    public HourlyForecast(Map<Long, List<HourlyDataWrapper>> hourlyByDays) {
+    public HourlyForecast(Map<String, List<HourlyDataWrapper>> hourlyByDays) {
         this.forecast = hourlyByDays;
     }
 
@@ -23,13 +23,13 @@ public class HourlyForecast implements Iterable<HourlyDataForDay> {
         return forecast.size();
     }
 
-    private Set<Long> getDaysAsMillis() {
+    private Set<String> getDays() {
         return forecast.keySet();
     }
 
-    private List<HourlyDataWrapper> getHourlyDataForDay(long dateTime) {
-        if (forecast.containsKey(dateTime)) {
-            return new ArrayList<>(forecast.get(dateTime));
+    private List<HourlyDataWrapper> getHourlyDataForDay(String dateTimeStr) {
+        if (forecast.containsKey(dateTimeStr)) {
+            return new ArrayList<>(forecast.get(dateTimeStr));
         }
         return Collections.emptyList();
     }
@@ -43,11 +43,11 @@ public class HourlyForecast implements Iterable<HourlyDataForDay> {
 
         private final HourlyForecast target;
         private int cursor = 0;
-        private final List<Long> keys;
+        private final List<String> keys;
 
         public HFIterator(HourlyForecast target) {
             this.target = target;
-            List<Long> keys = new ArrayList<>(target.getDaysAsMillis());
+            List<String> keys = new ArrayList<>(target.getDays());
             Collections.sort(keys);
             this.keys = keys;
         }
@@ -59,9 +59,9 @@ public class HourlyForecast implements Iterable<HourlyDataForDay> {
 
         @Override
         public HourlyDataForDay next() {
-            Long dayAsMillis = keys.get(cursor);
-            List<HourlyDataWrapper> data = target.getHourlyDataForDay(dayAsMillis);
-            HourlyDataForDay result = new HourlyDataForDay(dayAsMillis, data);
+            String dateTimeStr = keys.get(cursor);
+            List<HourlyDataWrapper> data = target.getHourlyDataForDay(dateTimeStr);
+            HourlyDataForDay result = new HourlyDataForDay(dateTimeStr, data);
             cursor = cursor + 1;
             return result;
         }

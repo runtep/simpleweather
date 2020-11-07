@@ -336,7 +336,7 @@ public class ConvertingHelper {
         // dateTime of each entry is assumed to be in target city`s timezone, but represented as UTC
         Calendar dtOfEntry = CalendarHelper.provideForUTC();
         for (HourlyDataForDay day : hf) {
-            dtOfEntry.setTimeInMillis(day.dayAsMillis);
+            dtOfEntry.setTimeInMillis(/*day.dayStr*/0L); // TODO: TDB
             if (CalendarHelper.ifPrecedingDay(dtNow, dtOfEntry)) {
                 continue;
             }

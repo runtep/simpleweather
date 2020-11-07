@@ -10,7 +10,6 @@ import org.roko.smplweather.model.HourlyDataWrapper;
 import org.roko.smplweather.model.HourlyForecast;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,12 +48,12 @@ public class HourlyForecastParser {
         //   "today_18:00": [date: "today_18:00", value: 2],
         //   ...
         // ]
-        Map<Long, Map<String, String>> target = Stream.of(temperatureValues).collect(
+        Map<String, Map<String, String>> target = Stream.of(temperatureValues).collect(
             Collectors.toMap(
-                (Map<String, String> e) -> Long.valueOf(e.get(DATE_MILLIS)),
+                (Map<String, String> e) -> e.get(DATE_STRING),
                 (Map<String, String> e) -> {
                     Map<String, String> forecastStub = new HashMap<>();
-                    forecastStub.put(DATE_MILLIS, e.get(DATE_MILLIS));
+                    forecastStub.put(DATE_STRING, e.get(DATE_STRING));
                     forecastStub.put(TEMPERATURE_CELSIUS, e.get(TEMPERATURE_CELSIUS));
                     return forecastStub;
                 },
@@ -83,7 +82,7 @@ public class HourlyForecastParser {
         supplyMap(target, precipProbabilities, PRECIP_PROBABILITY_PERCENT);
         supplyMap(target, descriptions, FORECAST_DESCR);
 
-        Map<Long, HourlyDataWrapper> hourlyData = new LinkedHashMap<>();
+        Map<String, HourlyDataWrapper> hourlyData = new LinkedHashMap<>();
         Stream.of(target).forEach(entry -> {
             HourlyDataWrapper hdw = new HourlyDataWrapper();
             hdw.putAll(entry.getValue());
@@ -103,55 +102,49 @@ public class HourlyForecastParser {
         return hf;
     }
 
-    private static Map<Long, List<HourlyDataWrapper>> groupByDays(Map<Long, HourlyDataWrapper> forecast) {
-        Map<Long, List<HourlyDataWrapper>> map = new LinkedHashMap<>();
+    private static Map<String, List<HourlyDataWrapper>> groupByDays(Map<String, HourlyDataWrapper> forecast) {
+        Map<String, List<HourlyDataWrapper>> map = new LinkedHashMap<>();
         List<HourlyDataWrapper> membersOfOneDay = new ArrayList<>();
-        Calendar dtCurrentItem = CalendarHelper.provideForUTC();
-        Calendar dtOfPrevItem = null;
-        Calendar croppedTime = CalendarHelper.provideForUTC();
-        List<Long> keys = Stream.of(forecast.keySet()).toList();
+        DateTime dtCurrentItem;
+        DateTime dtPrevItem = null;
+        List<String> keys = new ArrayList<>(forecast.keySet());
         Collections.sort(keys); // ascending order is important
-        for (Long key : keys) {
-            dtCurrentItem.setTimeInMillis(key);
+        for (String key : keys) {
+            dtCurrentItem = new DateTime(key);
             HourlyDataWrapper currentItem = forecast.get(key);
-            if (dtOfPrevItem == null) {
-                dtOfPrevItem = CalendarHelper.provideForUTC(dtCurrentItem.getTimeInMillis());
+            if (dtPrevItem == null) {
+                dtPrevItem = new DateTime(key);
             } else {
-                if (CalendarHelper.ifPrecedingDay(dtCurrentItem, dtOfPrevItem)) {
+                if (dtPrevItem.before(dtCurrentItem)) {
                     // dtPrevItem holds dateTime of a last item within a single day,
-                    croppedTime.setTimeInMillis(dtOfPrevItem.getTimeInMillis());
-                    // ... so we take it's date value (crop time)
-                    CalendarHelper.cropTime(croppedTime);
-                    // ... and use as a key in result map
-                    map.put(croppedTime.getTimeInMillis(), membersOfOneDay);
+                    // so we take it's date-only value (crop time) and use as a key in result map
+                    map.put(dtPrevItem.dateOnlyString(), membersOfOneDay);
                     membersOfOneDay = new ArrayList<>();
                 }
-                dtOfPrevItem.setTimeInMillis(dtCurrentItem.getTimeInMillis());
+                dtPrevItem = new DateTime(key);
             }
             membersOfOneDay.add(currentItem);
         }
-        if (dtOfPrevItem != null && !membersOfOneDay.isEmpty()) {
-            croppedTime.setTimeInMillis(dtOfPrevItem.getTimeInMillis());
-            CalendarHelper.cropTime(croppedTime);
-            map.put(croppedTime.getTimeInMillis(), membersOfOneDay);
+        if (dtPrevItem != null && !membersOfOneDay.isEmpty()) {
+            map.put(dtPrevItem.dateOnlyString(), membersOfOneDay);
         }
 
         return map;
     }
 
-    private static void supplyMap(final Map<Long, Map<String, String>> map,
+    private static void supplyMap(final Map<String, Map<String, String>> map,
                                   List<Map<String, String>> list,
                                   String targetFieldName) {
         Stream.of(list).forEach((Map<String, String> e) -> {
-            Long date = Long.valueOf(e.get(DATE_MILLIS));
-            Map<String, String> forecastStub = map.get(date);
+            String dateStr = e.get(DATE_STRING);
+            Map<String, String> forecastStub = map.get(dateStr);
             if (forecastStub != null) {
                 forecastStub.put(targetFieldName, e.get(targetFieldName));
             }
         });
     }
 
-    private static List<Map<String, String>> parseArray(String payload, String arrayName, String valueAlias) {
+    private static List<Map<String, String>> parseArray(String payload, final String arrayName, final String valueAlias) {
 
         List<Map<String, String>> resultItems = new ArrayList<>();
 
@@ -168,7 +161,7 @@ public class HourlyForecastParser {
             Matcher xyMatcher = pXY.matcher(array);
 
             int k = 0;
-            Calendar cal = CalendarHelper.provideForUTC(); // input data is in UTC
+
             while (xyMatcher.find(k)) {
                 String xValue = xyMatcher.group(1);
                 String yValue = xyMatcher.group(2);
@@ -176,20 +169,21 @@ public class HourlyForecastParser {
                 k = xyMatcher.end();
 
                 Matcher dateMatcher = pJSDate.matcher(xValue);
-                long date = -1;
+                String dateStr = "";
                 if (dateMatcher.find()) {
                     int year = Integer.parseInt(dateMatcher.group(1));
-                    int mon = Integer.parseInt(dateMatcher.group(2));
+                    int mon = Integer.parseInt(dateMatcher.group(2)); // zero-based
                     int day = Integer.parseInt(dateMatcher.group(3));
                     int hour24 = Integer.parseInt(dateMatcher.group(4));
 
-                    cal.set(year, mon, day, hour24, 0, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
-                    date = cal.getTimeInMillis();
+                    dateStr = String.format("%d%s%s%s00", year,
+                            withLeadZero(mon + 1),
+                            withLeadZero(day),
+                            withLeadZero(hour24));
                 }
 
                 Map<String, String> map = new HashMap<>(2);
-                map.put(DATE_MILLIS, String.valueOf(date));
+                map.put(DATE_STRING, dateStr);
                 map.put(valueAlias, targetValue);
 
                 resultItems.add(map);
@@ -198,5 +192,10 @@ public class HourlyForecastParser {
             Log.w("parser", "no match found for array " + arrayName);
         }
         return resultItems;
+    }
+
+    private static String withLeadZero(int value) {
+        if (value < 0 || value > 99) throw new IllegalArgumentException("Value is out of bounds");
+        return value < 10 ? "0" + value : Integer.toString(value);
     }
 }

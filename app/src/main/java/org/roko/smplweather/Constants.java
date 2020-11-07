@@ -26,7 +26,7 @@ public final class Constants {
     public static final String EMPTY_CITY_ID = "emptyCityId";
 
     public static class ForecastFields {
-        public static final String DATE_MILLIS = "dateMs";
+        public static final String DATE_STRING = "dateStr";
         public static final String TEMPERATURE_CELSIUS = "tempValCelsius";
         public static final String WIND_DIR_NAME = "windDirName";
         public static final String WIND_SPEED_METERS = "windSpeedMeters";
